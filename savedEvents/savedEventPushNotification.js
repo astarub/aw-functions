@@ -3,7 +3,7 @@ const admin = require('firebase-admin');
 const axios = require('axios');
 
 // Firebase service account
-const serviceAccount = require("../service-account.json");
+const serviceAccount = require("./service-account.json");
 
 // Initialize firebase 
 admin.initializeApp({
@@ -23,7 +23,7 @@ function chunk(array, chunkSize) {
 module.exports = async (req, res) => {
     // Set appwrite endpoint
     const client = new appwrite.Client()
-        .setEndpoint('https://api.app.asta-bochum.de/v1')
+        .setEndpoint('https://api-app.asta-bochum.de/v1')
         .setProject('campus_app')                
         .setKey(req.variables.API_KEY);
 
@@ -73,6 +73,18 @@ module.exports = async (req, res) => {
                     body: `${time} ${astaEvent.venue.venue != undefined ? `
                     Ort: ${astaEvent.venue.venue}` : ''}`,
                 },  
+                android: {
+                    notification: {
+                        channelId: 'savedEvents'
+                    }
+                },
+                apns: {
+                    payload: {
+                        aps: {
+                            category: 'savedEvents'
+                        }
+                    }
+                },
                 data: {
                     "interaction": String(JSON.stringify({
                         "destination": 'calendar',
