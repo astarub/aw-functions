@@ -70,17 +70,21 @@ module.exports = async (req, res) => {
             {
                 notification: {
                     title: `Erinnerung ${astaEvent.title}!`,
-                    body: `${time} ${astaEvent.venue.venue != undefined ? `
-                    Ort: ${astaEvent.venue.venue}` : ''}`,
+                    body: `${time} ${astaEvent.venue.venue != undefined ? `Ort: ${astaEvent.venue.venue}` : ''}`,
                 },  
                 android: {
                     notification: {
+                        priority: "high",
                         channelId: 'savedEvents'
                     }
                 },
                 apns: {
+                    headers: {
+                        'apns-priority': '10'
+                    },
                     payload: {
                         aps: {
+                            contentAvailable: true,
                             category: 'savedEvents'
                         }
                     }
