@@ -3,7 +3,7 @@ const admin = require('firebase-admin');
 const axios = require('axios');
 
 // Firebase service account
-const serviceAccount = require("./service-account.json");
+const serviceAccount = require("../service-account.json");
 
 // Initialize firebase 
 admin.initializeApp({
