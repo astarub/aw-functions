@@ -23,7 +23,7 @@ function chunk(array, chunkSize) {
 module.exports = async (req, res) => {
     // Set appwrite endpoint
     const client = new appwrite.Client()
-        .setEndpoint('https://api-app.asta-bochum.de/v1')
+        .setEndpoint('https://api-app2.asta-bochum.de/v1')
         .setProject('campus_app')                
         .setKey(req.variables.API_KEY);
 
