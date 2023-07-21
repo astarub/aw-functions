@@ -30,12 +30,21 @@ module.exports = async (req, res) => {
     const db = new appwrite.Databases(client);
 
     // Get all events from the asta calendar 
-    let astaEvents;
+    let wpEvents;
     try {
-        astaEvents = (await axios('https://asta-bochum.de/wp-json/tribe/events/v1/events/')).data.events;
+        wpEvents = (await axios('https://asta-bochum.de/wp-json/tribe/events/v1/events')).data.events;
         
     } catch(e) {
         console.log('[ERROR] Could not fetch AStA Events.');
+        return res.json("Error");
+    }
+
+    // Get all events from the app calendar 
+    try {
+        wpEvents = wpEvents.concat((await axios('https://app2.asta-bochum.de/wp-json/tribe/events/v1/events')).data.events);
+        
+    } catch(e) {
+        console.log('[ERROR] Could not fetch App Events.');
         return res.json("Error");
     }
 
@@ -55,22 +64,22 @@ module.exports = async (req, res) => {
     // Go through all events 
     for (const eventToday of eventsToday) {
         // Find the corresponding event of the AStA calendar 
-        const astaEvent = astaEvents.find(event => event.id == eventToday.eventId);
-        if(astaEvent == undefined) continue;
+        const wpEvent = wpEvents.find(event => event.id == eventToday.eventId);
+        if(wpEvent == undefined) continue;
     
         // Adjust the notification body based on the existence of an end date
-        const time = (astaEvent.start_date_details.hour == astaEvent.end_date_details.hour && 
-            astaEvent.start_date_details.minutes == astaEvent.end_date_details.minutes) ? 
-                `Heute ${astaEvent.start_date_details.hour}:${astaEvent.start_date_details.minutes} Uhr` 
-            : `Heute ${astaEvent.start_date_details.hour}:${astaEvent.start_date_details.minutes} bis ${astaEvent.end_date_details.hour}:${astaEvent.end_date_details.minutes} Uhr`
+        const time = (wpEvent.start_date_details.hour == wpEvent.end_date_details.hour && 
+            wpEvent.start_date_details.minutes == wpEvent.end_date_details.minutes) ? 
+                `Heute ${wpEvent.start_date_details.hour}:${wpEvent.start_date_details.minutes} Uhr` 
+            : `Heute ${wpEvent.start_date_details.hour}:${wpEvent.start_date_details.minutes} bis ${wpEvent.end_date_details.hour}:${wpEvent.end_date_details.minutes} Uhr`
         ;
         
         // Send the message
         await admin.messaging().send(
             {
                 notification: {
-                    title: `Erinnerung ${astaEvent.title}!`,
-                    body: `${time} ${astaEvent.venue.venue != undefined ? `Ort: ${astaEvent.venue.venue}` : ''}`,
+                    title: `Erinnerung ${wpEvent.title}!`,
+                    body: `${time} ${wpEvent.venue.venue != undefined ? `Ort: ${wpEvent.venue.venue}` : ''}`,
                 },  
                 android: {
                     notification: {

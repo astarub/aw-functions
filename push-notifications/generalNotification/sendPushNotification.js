@@ -11,8 +11,12 @@ admin.initializeApp({
 module.exports = async (req, res) => {
     const payload = JSON.parse(req.payload);
 
-    if(!payload.title || !payload.body) {
-        return res.json("Incorrect request. Please provide a notification title and body.")
+    if(!payload.api_key || !payload.title || !payload.body) {
+        return res.json("Incorrect request. Please provide an api key, a notification title and a body.")
+    }
+
+    if(payload.api_key != req.variables.AUTH_KEY) {
+        return res.json("Incorrect api key. Please provide a valid api key.");
     }
 
     if(payload.data) {
