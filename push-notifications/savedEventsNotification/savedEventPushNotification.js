@@ -20,12 +20,12 @@ function chunk(array, chunkSize) {
     return arr;
 }
 
-module.exports = async (req, res) => {
+module.exports = async ({req, res, log, error}) => {
     // Set appwrite endpoint
     const client = new appwrite.Client()
         .setEndpoint('https://api-app.asta-bochum.de/v1')
         .setProject('campus_app')                
-        .setKey(req.variables.API_KEY);
+        .setKey(process.env.API_KEY);
 
     const db = new appwrite.Databases(client);
 
@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
         wpEvents = (await axios('https://asta-bochum.de/wp-json/tribe/events/v1/events')).data.events;
         
     } catch(e) {
-        console.log('[ERROR] Could not fetch AStA Events.');
+        log('[ERROR] Could not fetch AStA Events.');
         return res.json("Error");
     }
 
@@ -44,7 +44,7 @@ module.exports = async (req, res) => {
         wpEvents = wpEvents.concat((await axios('https://app.asta-bochum.de/wp-json/tribe/events/v1/events')).data.events);
         
     } catch(e) {
-        console.log('[ERROR] Could not fetch App Events.');
+        log('[ERROR] Could not fetch App Events.');
         return res.json("Error");
     }
 
@@ -114,7 +114,7 @@ module.exports = async (req, res) => {
             }
         );
     
-        console.log('[INFO] Notifications sent.');
+        log('[INFO] Notifications sent.');
     
         // Remove all documents with the corresponding event id 
         const eventDocuments = events.filter(item => item.eventId == eventToday.eventId);
@@ -122,12 +122,12 @@ module.exports = async (req, res) => {
             try {
                 await db.deleteDocument('push_notifications', 'saved_events', eventDocument.$id);
             } catch (e)  {
-                console.log('[ERROR] Error while deleting saved events:' + e);
+                log('[ERROR] Error while deleting saved events:' + e);
                 continue;
             }
         }
     
-        console.log('[INFO] Documents deleted.');
+        log('[INFO] Documents deleted.');
     
         // Get all fcm tokens of the documents with the corresponding event id 
         const fcmTokens = eventDocuments.map(item => item.fcmToken);
@@ -138,12 +138,12 @@ module.exports = async (req, res) => {
             try {
                 await admin.messaging().unsubscribeFromTopic(chunk, eventToday.eventId.toString());
             } catch (e) {
-                console.log('[ERROR] Error while unsubscribing tokens: ' + e);
+                log('[ERROR] Error while unsubscribing tokens: ' + e);
             }
         }
     
-        console.log('[INFO] Topic deleted.');
+        log('[INFO] Topic deleted.');
     }
-    console.log('[INFO] All operations concluded. Closing...')
+    log('[INFO] All operations concluded. Closing...')
     return res.json("Function executed!");
 };

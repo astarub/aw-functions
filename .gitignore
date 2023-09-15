@@ -148,3 +148,5 @@ service-account.json
 
 # Unnecessary package file
 package-lock.json
+
+test/

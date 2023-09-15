@@ -8,14 +8,14 @@ admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
 
-module.exports = async (req, res) => {
-    const payload = JSON.parse(req.payload);
+module.exports = async ({req, res, log, error}) => {
+    const payload = JSON.parse(req.body);
 
     if(!payload.api_key || !payload.title || !payload.body) {
         return res.json("Incorrect request. Please provide an api key, a notification title and a body.")
     }
 
-    if(payload.api_key != req.variables.AUTH_KEY) {
+    if(payload.api_key != process.env.AUTH_KEY) {
         return res.json("Incorrect api key. Please provide a valid api key.");
     }
 
