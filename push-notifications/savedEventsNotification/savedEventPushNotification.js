@@ -23,7 +23,7 @@ function chunk(array, chunkSize) {
 module.exports = async (req, res) => {
     // Set appwrite endpoint
     const client = new appwrite.Client()
-        .setEndpoint('https://api-app2.asta-bochum.de/v1')
+        .setEndpoint('https://api-app.asta-bochum.de/v1')
         .setProject('campus_app')                
         .setKey(req.variables.API_KEY);
 
@@ -41,7 +41,7 @@ module.exports = async (req, res) => {
 
     // Get all events from the app calendar 
     try {
-        wpEvents = wpEvents.concat((await axios('https://app2.asta-bochum.de/wp-json/tribe/events/v1/events')).data.events);
+        wpEvents = wpEvents.concat((await axios('https://app.asta-bochum.de/wp-json/tribe/events/v1/events')).data.events);
         
     } catch(e) {
         console.log('[ERROR] Could not fetch App Events.');
