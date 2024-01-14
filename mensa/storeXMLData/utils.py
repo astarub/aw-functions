@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+#
+#   Functions
+#
+
 def humanizeMenuLineNames(menuLineName: str) -> str:
     """
     Match AKAFÖ internal menu names to human readable / well-known
@@ -29,6 +33,8 @@ def humanizeMenuLineNames(menuLineName: str) -> str:
         return 'UniKids / Unizwerge'
     elif menuLineName == 'Dessert portioniert RUB':
         return 'Dessert'
+    elif menuLineName == 'Grill Cube 1':
+        return 'Grill Cube'
     else:
         return menuLineName.strip()
     
@@ -132,10 +138,25 @@ def mapAdditivesToShortcuts(additiveName: str) -> str:
         return '10'
     elif 'Schwefeldioxid' in additiveName:
         return 'E220'
+    elif 'koffeinhaltig' in additiveName:
+        return '12'
+    elif 'Gelatine' in additiveName:
+        return 'EG' # not displayed on AKAFÖ site or app 
+    elif 'Geschmacksverstärker' in additiveName:
+        return '4'
     else:
         return additiveName.strip()
     
 def prettifyDishName(dishName: str) -> str:
+    """
+    Create pretty dish names by removing unessacary strings.
+
+    Args:
+        dishName (str): The ugly dish name.
+
+    Returns:
+        str: The pretty dish name.
+    """    
     tmp = ( dishName
         .replace('NEU', '')
         .replace('(RUB)', '')
@@ -147,6 +168,9 @@ def prettifyDishName(dishName: str) -> str:
         .replace('(S)', '')
         .replace(' S', '')
         .replace('SF', '') # Study & Fit
+        .replace('(QW)', '')
+        .replace('QW', '')
+        .replace('(Cube)', '')
         .strip()
     )
     
@@ -156,6 +180,14 @@ def prettifyDishName(dishName: str) -> str:
         return tmp
 
 def checkImplicitAddtives(*argv) -> list[str]:
+    """
+    Some Additives are not in the correct XML field, but the information
+    exists implicitly in other string, e.g. names. This function extracts
+    this information as good as possible.
+
+    Returns:
+        list[str]: List of additives. 
+    """    
     additives = []
     for string in argv:
         # check if some weird argument was given

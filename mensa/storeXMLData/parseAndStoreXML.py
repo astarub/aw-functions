@@ -6,6 +6,10 @@
 
 import utils
 
+from appwrite.id import ID
+from appwrite.services.databases import Databases
+
+from os import environ
 import xml.etree.ElementTree as ET
 from difflib import get_close_matches
 
@@ -17,14 +21,36 @@ ADDITIVE_SKIP    = ['ohne Kennzeichnung']
 COMPONETS_SKIP   = ['Diverse Kuchen', 'Dessert Buffet', 'Desserttheke RUB NEU']
 MENULINES_SKIP   = ['USB','Sauce Extra','Schulessen 1','Schulessen 2']
 
+AW_DATABASE_ID   = environ['AW_DATABASE_ID']
+AW_COLLECTION_ID = environ['AW_COLLECTION_ID']
+
 #
 #   Functions
 #
 
-def parseMensaRUBFile(mensaRub: ET.Element):
-    #** Read Mensa RUB
+def parseAndStoreXML(xml: ET.Element, restaurant: str, awDB: Databases, context):
+    """
+    This function reads the XML document and will parse them into dish entities.
+    The entities are write to the approchiate AppWrite database. 
 
-    for weekDay in mensaRub.findall('WeekDays/WeekDay'):
+    Database cleaning like removing old dish entries or avoiding dublicates is not
+    in the scope of this function. It will only read the XML and write new documents
+    (dish entities) to the database.
+
+    Also it assumes that the coded and provided restaurants are correct collection IDs
+    configured in the AppWrite backend. 
+
+    Args:
+        xml (ET.Element): AKAFÖ provided XML containing the mensa data.
+        restaurant (str): The collection ID and restaurant name.
+                          Possible values: mensa_rub, qwest, henkelmann, unikids and rote_bete
+        awDB (AppWrite Databases): The AppWrite Database connecter to create new entries.
+        context: AppWrite Cloud Function Execution Context
+    """    
+
+    #** Read XML File
+
+    for weekDay in xml.findall('WeekDays/WeekDay'):
         # week day as format e.g. 'Mo, 10.10.'
         date = f'{weekDay.attrib["Day"][:2]}, {weekDay.attrib["Date"][8:]}.{weekDay.attrib["Date"][5:7]}.'
         for menuLine in weekDay.findall('MenuLine'):
@@ -37,8 +63,9 @@ def parseMensaRUBFile(mensaRub: ET.Element):
                 product = details.find('./ProductInfo/Product')
                 dishName = product.attrib['name']
 
-                # Nudeltheke is differently used in XML document structure
-                if menuName == 'Nudeltheke':
+                # Nudeltheke is differently used in XML document structure.
+                # Also other dishes (e.g. at Rote Bete) sometines doesn't have names. 
+                if menuName == 'Nudeltheke' or dishName.strip() == '':
                     dishName = details.find('GastDesc').attrib['value']
 
                 # skip useless / unessary information 
@@ -47,9 +74,14 @@ def parseMensaRUBFile(mensaRub: ET.Element):
 
                 # Not all dishes have individual price (e.g. Nudelteke) so the 
                 # menuLine product info contains the nessary information
-                if product.attrib['ProductPrice'] == '0.00': # default value if not set
-                    menuProduct = menuLine.find('./SetMenu/SetMenuDetails/ProductInfo/Product') 
-                    dishPrice = f"{menuProduct.attrib['ProductPrice']}€ / {menuProduct.attrib['ProductPrice3']}€"
+                if product.attrib['ProductPrice'] == '0.00':
+                    menuProduct = menuLine.find('./SetMenu/SetMenuDetails/ProductInfo/Product')
+                    # Not all menus contains the nessacary information, so instead of storing 
+                    # 0.00€ es price it will be set to a fallback value.
+                    if menuProduct.attrib['ProductPrice'] == '0.00':
+                        dishPrice = None
+                    else:
+                        dishPrice = f"{menuProduct.attrib['ProductPrice']}€ / {menuProduct.attrib['ProductPrice3']}€"
                 else:
                     # Price = '2.00€ / 3.00€' -> internal / external price
                     dishPrice = f"{product.attrib['ProductPrice']}€ / {product.attrib['ProductPrice3']}€"
@@ -84,23 +116,25 @@ def parseMensaRUBFile(mensaRub: ET.Element):
                 menuName = utils.humanizeMenuLineNames(menuName)
 
                 # determine restaurant enum
-                restaurant = 'mensa_rub'
                 if menuName == 'UniKids / Unizwerge':
-                    restaurant = 'unikids'
+                    _restaurant = 'unikids'
                 elif menuName == 'Henkelmann':
-                    restaurant = 'henkelmann'
+                    _restaurant = 'henkelmann'
+                else:
+                    # reset restaurant for looping
+                    _restaurant = restaurant
                 
                 try:
-                    # awDB.create_document(AW_DATABASE_ID, AW_COLLECTION_ID, ID.unique(), {
-                    #     'date': date,
-                    #     'menuName': menuName,
-                    #     'dishName': utils.prettifyDishName(dishName),
-                    #     'dishAdditives': list(set(dishAdditives)), # remove duplicates
-                    #     'restaurant': restaurant
-                    # })
-                    pass
-                    print(f'[{date}][{restaurant}] {menuName} | {utils.prettifyDishName(dishName)} | {dishPrice} | {list(set(dishAdditives))}')
+                    awDB.create_document(AW_DATABASE_ID, AW_COLLECTION_ID, ID.unique(), {
+                        'date': date,
+                        'menuName': menuName,
+                        'dishName': utils.prettifyDishName(dishName),
+                        'dishPrice': dishPrice,
+                        'dishAdditives': list(set(dishAdditives)), # remove duplicates
+                        'restaurant': _restaurant
+                    })
                 except Exception as e:
-                    #context.error(f'Failed to create document: {e.message}')
-                    continue
-                #context.log(f'Wrote {dishName} ({date}) successfully to collection {restaurant}.')
+                    context.error(f'[-] Failed to create document: {e.message}')
+                    continue # should not (!) exit 
+                
+                context.log(f'[+][{_restaurant}][{date}] {menuName} | {utils.prettifyDishName(dishName)} | {dishPrice} | {list(set(dishAdditives))}')
