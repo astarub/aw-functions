@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 from appwrite.client import Client
 from appwrite.services.databases import Databases
 
-from parseAndStoreXML import parseAndStoreXML
+from .parseAndStoreXML import parseAndStoreXML
 
 #
 #   Global Variables
@@ -39,7 +39,7 @@ def main(context):
         roteBeteXML = requests.get(f'{BASE_URL}/{ROTE_BETE_FILE}').content
         qwestXML = requests.get(f'{BASE_URL}/{QWEST_FILE}').content
     except Exception as e:
-        context.error(f'[-] Failed to download XML files: {e.message}')
+        context.error(f'[-] Failed to download XML files: {e}')
         return None
     context.log('[#] Downloaded XML files successfully')
 
@@ -49,7 +49,7 @@ def main(context):
         roteBete = ET.fromstring(roteBeteXML)
         qwest = ET.fromstring(qwestXML)
     except Exception as e:
-        context.error(f'[-] Failed to parse XML files: {e.message}')
+        context.error(f'[-] Failed to parse XML files: {e}')
         return None
     context.log('[#] Parsed XML files successfully')
     
@@ -65,21 +65,21 @@ def main(context):
     #** Parse and Store Data
 
     try:
-        parseAndStoreXML(mensaRub, 'mensa_rub', awDB)
+        parseAndStoreXML(mensaRub, 'mensa_rub', awDB, context)
         context.log('[#] Successfully updated mensa data.')
     except Exception as e:
-        context.Error(f'[-] Failed updated mensa data: {e}')
+        context.error(f'[-] Failed updated mensa data: {e}')
         
     try:
-        parseAndStoreXML(roteBete, 'rote_bete', awDB)
+        parseAndStoreXML(roteBete, 'rote_bete', awDB, context)
         context.log('[#] Successfully updated rote bete data.')
     except Exception as e:
-        context.Error(f'[-] Failed updated rote bete data: {e}')
+        context.error(f'[-] Failed updated rote bete data: {e}')
         
     try:
-        parseAndStoreXML(qwest, 'qwest', awDB)
+        parseAndStoreXML(qwest, 'qwest', awDB, context)
         context.log('[#] Successfully updated Q-West data.')
     except Exception as e:
-        context.Error(f'[-] Failed updated Q-West data: {e}')
+        context.error(f'[-] Failed updated Q-West data: {e}')
         
     context.log('[#] Successfully updated all mensa data.')
