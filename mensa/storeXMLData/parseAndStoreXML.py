@@ -4,7 +4,7 @@
 #   Imports
 #
 
-from .utils import  (
+from utils import  (
     humanizeMenuLineNames,
     mapAdditivesToShortcuts,
     prettifyDishName,
@@ -23,7 +23,7 @@ from difflib import get_close_matches
 #
 
 ADDITIVE_SKIP    = ['ohne Kennzeichnung']
-COMPONETS_SKIP   = ['Diverse Kuchen', 'Dessert Buffet', 'Desserttheke RUB NEU']
+COMPONETS_SKIP   = ['Diverse Kuchen', 'Div. Kuchen', 'Dessert Buffet', 'Desserttheke RUB NEU']
 MENULINES_SKIP   = ['USB','Sauce Extra','Schulessen 1','Schulessen 2']
 
 AW_DATABASE_ID   = environ['AW_DATABASE_ID']
@@ -33,7 +33,8 @@ AW_COLLECTION_ID = environ['AW_COLLECTION_ID']
 #   Functions
 #
 
-def parseAndStoreXML(xml: ET.Element, restaurant: str, awDB: Databases, context):
+def parseAndStoreXML(xml: ET.Element, restaurant: str, awDB: Databases, # context
+                     ) -> None:
     """
     This function reads the XML document and will parse them into dish entities.
     The entities are write to the approchiate AppWrite database. 
@@ -66,12 +67,7 @@ def parseAndStoreXML(xml: ET.Element, restaurant: str, awDB: Databases, context)
 
             for details in menuLine.findall('./SetMenu/Component/ComponentDetails'):
                 product = details.find('./ProductInfo/Product')
-                dishName = product.attrib['name']
-
-                # Nudeltheke is differently used in XML document structure.
-                # Also other dishes (e.g. at Rote Bete) sometines doesn't have names. 
-                if menuName == 'Nudeltheke' or dishName.strip() == '':
-                    dishName = details.find('GastDesc').attrib['value']
+                dishName = details.find('GastDesc').attrib['value']
 
                 # skip useless / unessary information 
                 if dishName in COMPONETS_SKIP:
@@ -121,7 +117,7 @@ def parseAndStoreXML(xml: ET.Element, restaurant: str, awDB: Databases, context)
                 menuName = humanizeMenuLineNames(menuName)
 
                 # determine restaurant enum
-                if menuName == 'UniKids / Unizwerge':
+                if menuName == 'UniKids / Unizwerge' or menuName == "AKAFÖ Kita":
                     _restaurant = 'unikids'
                 elif menuName == 'Henkelmann':
                     _restaurant = 'henkelmann'
@@ -139,7 +135,7 @@ def parseAndStoreXML(xml: ET.Element, restaurant: str, awDB: Databases, context)
                         'restaurant': _restaurant
                     })
                 except Exception as e:
-                    context.error(f'[-] Failed to create document: {e}')
+                    print(f'[-] Failed to create document: {e}')
                     continue # should not (!) exit 
                 
-                context.log(f'[+][{_restaurant}][{date}] {menuName} | {prettifyDishName(dishName)} | {dishPrice} | {list(set(dishAdditives))}')
+                print(f'[+] [{_restaurant}][{date}]: {menuName} | {prettifyDishName(dishName)} | {dishPrice} | {list(set(dishAdditives))}')

@@ -171,6 +171,7 @@ def prettifyDishName(dishName: str) -> str:
         .replace('(QW)', '')
         .replace('QW', '')
         .replace('(Cube)', '')
+        .replace('Topping:', '')
         .strip()
     )
     
