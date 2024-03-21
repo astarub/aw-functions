@@ -166,7 +166,7 @@ def prettifyDishName(dishName: str) -> str:
         .replace('(H)', '')
         .replace('(G)', '')
         .replace('(S)', '')
-        .replace(' S', '')
+        #.replace(' S', '') -> somethimes AKAFÖ just set "S" instead of "(S)"
         .replace('SF', '') # Study & Fit
         .replace('(QW)', '')
         .replace('QW', '')
