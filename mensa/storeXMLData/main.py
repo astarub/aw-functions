@@ -21,7 +21,7 @@ from parseAndStoreXML import parseAndStoreXML
 BASE_URL       = environ['BASE_URL']            # https://asta-bochum.de/akafoe
 MENSA_RUB_FILE = environ['MENSA_RUB_FILE']      # Mensa_RUB%20K%C3%BCche210.xml
 QWEST_FILE     = environ['QWEST_FILE']          # QWest230.xml
-ROTE_BETE_FILE = environ['ROTE_BETE_FILE']      # Cafeteria_Rote%20Bete_Cafebar220.xml 
+ROTE_BETE_FILE = environ['ROTE_BETE_FILE']      # Bistro_Cafebar220.xml
 
 AW_DATABASE_ID   = environ['AW_DATABASE_ID']    # data
 AW_COLLECTION_ID = environ['AW_COLLECTION_ID']  # mensa

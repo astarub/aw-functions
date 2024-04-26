@@ -57,8 +57,8 @@ def parseAndStoreXML(xml: ET.Element, restaurant: str, awDB: Databases, # contex
     #** Read XML File
 
     for weekDay in xml.findall('WeekDays/WeekDay'):
-        # week day as format e.g. 'Mo, 10.10.'
-        date = f'{weekDay.attrib["Day"][:2]}, {weekDay.attrib["Date"][8:]}.{weekDay.attrib["Date"][5:7]}.'
+        # week day as format e.g. '2024-03-11'
+        date = weekDay.attrib["Date"]
         for menuLine in weekDay.findall('MenuLine'):
             # skip useless / unessary information 
             if menuLine.attrib['Name'] in MENULINES_SKIP:
