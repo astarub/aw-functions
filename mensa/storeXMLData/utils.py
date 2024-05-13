@@ -35,6 +35,8 @@ def humanizeMenuLineNames(menuLineName: str) -> str:
         return 'Dessert'
     elif menuLineName == 'Grill Cube 1':
         return 'Grill Cube'
+    elif menuLineName == 'Salattheke SB':
+        return 'Salattheke'
     else:
         return menuLineName.strip()
     
