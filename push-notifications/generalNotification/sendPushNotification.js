@@ -12,10 +12,12 @@ module.exports = async ({req, res, log, error}) => {
     const payload = JSON.parse(req.body);
 
     if(!payload.api_key || !payload.title || !payload.body) {
+        error("Incorrect request. Please provide an api key, a notification title and a body.");
         return res.json("Incorrect request. Please provide an api key, a notification title and a body.")
     }
 
     if(payload.api_key != process.env.AUTH_KEY) {
+        error("Incorrect api key. Please provide a valid api key.");
         return res.json("Incorrect api key. Please provide a valid api key.");
     }
 
@@ -49,6 +51,7 @@ module.exports = async ({req, res, log, error}) => {
                 topic: payload.topic != undefined ? payload.topic : 'defaultNotifications'
             }
         ).catch(error => {
+            error(`Error while sending push notification. Error: ${error}`);
             return res.json(`Error while sending push notification. Error: ${error}`, 400);
         });
     } else {
