@@ -79,6 +79,6 @@ module.exports = async ({req, res, log, error}) => {
             return res.json(`Error while sending push notification. Error: ${error}`, 400);
         });
     }
-
+    log("Push notification sent");
     return res.json("Push notification sent!");
 };
