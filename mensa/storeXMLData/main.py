@@ -12,7 +12,8 @@ from appwrite.client import Client
 from appwrite.services.databases import Databases
 from appwrite.query import Query
 
-from parseAndStoreXML import parseAndStoreXML
+from parseAndStoreMensaXML import parseAndStoreMensaXML
+from parseAndStoreCafeXML import parseAndStoreCafeXML
 
 #
 #   Global Variables
@@ -109,16 +110,17 @@ def main(context):
     #** Parse and Store Data
 
     try:
-        parseAndStoreXML(mensaRub, 'mensa_rub', awDB, #context
+        if not UPDATE_DATA_FAILED:
+            parseAndStoreMensaXML(mensaRub, 'mensa_rub', awDB, #context
                          )
-        print('[#] Successfully updated mensa data.')
+            print('[#] Successfully updated mensa data.')
     except Exception as e:
         UPDATE_DATA_FAILED |= True
         print(f'[-] Failed updated mensa data: {e}')
         
     try:
         if not UPDATE_DATA_FAILED: 
-            parseAndStoreXML(roteBete, 'rote_bete', awDB, #context
+            parseAndStoreMensaXML(roteBete, 'rote_bete', awDB, #context
                          )
             print('[#] Successfully updated rote bete data.')
     except Exception as e:
@@ -127,7 +129,7 @@ def main(context):
         
     try:
         if not UPDATE_DATA_FAILED: 
-            parseAndStoreXML(qwest, 'qwest', awDB, #context
+            parseAndStoreMensaXML(qwest, 'qwest', awDB, #context
                          )
             print('[#] Successfully updated Q-West data.')
     except Exception as e:
@@ -136,7 +138,7 @@ def main(context):
 
     try:
         if not UPDATE_DATA_FAILED: 
-            parseAndStoreXML(bocholt, 'bocholt', awDB, #context
+            parseAndStoreMensaXML(bocholt, 'bocholt', awDB, #context
                          )
             print('[#] Successfully updated data for Bocholt.')
     except Exception as e:
@@ -145,7 +147,7 @@ def main(context):
 
     try:
         if not UPDATE_DATA_FAILED: 
-            parseAndStoreXML(gd, 'caf_gd', awDB, #context
+            parseAndStoreCafeXML(gd, 'caf_gd', awDB, #context
                          )
             print('[#] Successfully updated GD cafeteria data.')
     except Exception as e:
@@ -154,7 +156,7 @@ def main(context):
 
     try:
         if not UPDATE_DATA_FAILED: 
-            parseAndStoreXML(ib, 'caf_ib', awDB, #context
+            parseAndStoreCafeXML(ib, 'caf_ib', awDB, #context
                          )
             print('[#] Successfully updated IB cafeteria data.')
     except Exception as e:
@@ -163,7 +165,7 @@ def main(context):
 
     try:
         if not UPDATE_DATA_FAILED: 
-            parseAndStoreXML(id, 'caf_id', awDB, #context
+            parseAndStoreCafeXML(id, 'caf_id', awDB, #context
                          )
             print('[#] Successfully updated ID cafeteria data.')
     except Exception as e:
@@ -172,7 +174,7 @@ def main(context):
 
     try:
         if not UPDATE_DATA_FAILED: 
-            parseAndStoreXML(hochges, 'hochschule_gesundheit', awDB, #context
+            parseAndStoreCafeXML(hochges, 'hochschule_gesundheit', awDB, #context
                          )
             print('[#] Successfully updated "Hochschule für Gesundheit" data.')
     except Exception as e:
@@ -181,7 +183,7 @@ def main(context):
 
     try:
         if not UPDATE_DATA_FAILED: 
-            parseAndStoreXML(whsCaf, 'whs_caf', awDB, #context
+            parseAndStoreCafeXML(whsCaf, 'whs_caf', awDB, #context
                          )
             print('[#] Successfully updated WHS cafeteria data.')
     except Exception as e:
@@ -190,7 +192,7 @@ def main(context):
 
     try:
         if not UPDATE_DATA_FAILED: 
-            parseAndStoreXML(whsMensa, 'whs_mensa', awDB, #context
+            parseAndStoreMensaXML(whsMensa, 'whs_mensa', awDB, #context
                          )
             print('[#] Successfully updated WHS mensa data.')
     except Exception as e:
@@ -199,7 +201,7 @@ def main(context):
 
     try:
         if not UPDATE_DATA_FAILED: 
-            parseAndStoreXML(recklinghausen, 'recklinghausen', awDB, #context
+            parseAndStoreMensaXML(recklinghausen, 'recklinghausen', awDB, #context
                          )
             print('[#] Successfully updated data for Recklinghausen.')
     except Exception as e:
@@ -214,10 +216,11 @@ def main(context):
     if UPDATE_DATA_FAILED:
         try:
             # Delete new entries / entries that are created while failing
-            newCollection = awDB.list_documents(AW_DATABASE_ID, AW_COLLECTION_ID, [Query.limit(5000)])
-            toDelete = set(newCollection['documents']).difference(oldCollection['documents'])
+            newCollection = awDB.list_documents(AW_DATABASE_ID, AW_COLLECTION_ID, [Query.limit(1000)])
+            toDelete = [dish for dish in newCollection['documents'] if dish not in oldCollection['documents']]
+            print(f'[#] Try to delete {len(toDelete)} garbage dishes.')
             for dish in toDelete:
-                awDB.delete_document(AW_DATABASE_ID, AW_COLLECTION_ID, dish.id)
+                awDB.delete_document(AW_DATABASE_ID, AW_COLLECTION_ID, dish['$id'])
             print('[+] Garbage collection succesfully.')
         except Exception as e:
             print(f'[-] Failed to delete created dishes while failing to update: {e}')

@@ -33,7 +33,7 @@ AW_COLLECTION_ID = environ['AW_COLLECTION_ID']
 #   Functions
 #
 
-def parseAndStoreXML(xml: ET.Element, restaurant: str, awDB: Databases, # context
+def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, # context
                      ) -> None:
     """
     This function reads the XML document and will parse them into dish entities.
@@ -93,10 +93,10 @@ def parseAndStoreXML(xml: ET.Element, restaurant: str, awDB: Databases, # contex
                     # This field contains (sometimes as only) the information about vegan or vegetarian.
                     gastDesc = menuLine.find('./SetMenu/SetMenuDetails/GastDesc/GastDescTranslation').attrib['value']
                     # Use string-matches to determine additives that not contained in the field for contains
-                    dishAdditives = checkImplicitAddtives(dishName, menuName, get_close_matches(dishName, gastDesc.split('\n'), 1, 0.25)[0])
+                    dishAdditives = checkImplicitAddtives(prettifyDishName(dishName), dishName, menuName, get_close_matches(dishName, gastDesc.split('\n'), 1, 0.25)[0])
                 except Exception as e:
                     # Ensure definition of dishAdditives
-                    dishAdditives = checkImplicitAddtives(dishName, menuName)
+                    dishAdditives = checkImplicitAddtives(prettifyDishName(dishName), menuName)
 
                 for additives in details.findall('./AdditiveInfo/AdditiveGroup/Additive'):
                     # skip useless / unessary information 
@@ -126,14 +126,15 @@ def parseAndStoreXML(xml: ET.Element, restaurant: str, awDB: Databases, # contex
                     _restaurant = restaurant
                 
                 try:
-                    awDB.create_document(AW_DATABASE_ID, AW_COLLECTION_ID, ID.unique(), {
+                    document = {
                         'date': date,
                         'menuName': menuName,
                         'dishName': prettifyDishName(dishName),
                         'dishPrice': dishPrice,
                         'dishAdditives': list(set(dishAdditives)), # remove duplicates
                         'restaurant': _restaurant
-                    })
+                    }
+                    awDB.create_document(AW_DATABASE_ID, AW_COLLECTION_ID, ID.unique(), document)
                 except Exception as e:
                     print(f'[-] Failed to create document: {e}')
                     continue # should not (!) exit 

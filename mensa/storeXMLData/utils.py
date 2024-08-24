@@ -210,6 +210,6 @@ def checkImplicitAddtives(*argv) -> list[str]:
         if '(A)' in string:
             additives.append('A')
         if '(H)' in string or 'halal' in string.lower():
-            additives.append('S')
+            additives.append('H')
 
     return additives
