@@ -4,11 +4,12 @@
 #   Imports
 #
 
-from utils import  (
+from .utils import  (
     humanizeMenuLineNames,
     mapAdditivesToShortcuts,
     prettifyDishName,
-    checkImplicitAddtives
+    checkImplicitAddtives,
+    cloudPrint,
 )
 
 from appwrite.id import ID
@@ -24,17 +25,18 @@ from difflib import get_close_matches
 
 ADDITIVE_SKIP    = ['ohne Kennzeichnung']
 COMPONETS_SKIP   = ['Diverse Kuchen', 'Div. Kuchen', 'Dessert Buffet', 'Desserttheke RUB NEU']
-MENULINES_SKIP   = ['USB','Sauce Extra','Schulessen 1','Schulessen 2', 'Pfannengerichte', 'Hauptgerichte Schwein', 'Hauptgerichte Geflügel', 'Aktion', 'Hauptgerichte Diverses', 'Hauptgerichte Fisch', 'Hauptgerichte Vegetarisch', 'Hauptgerichte Vegan']
+MENULINES_SKIP   = ['USB','Sauce Extra','Schulessen 1','Schulessen 2']
 
 AW_DATABASE_ID   = environ['AW_DATABASE_ID']
 AW_COLLECTION_ID = environ['AW_COLLECTION_ID']
+
+DEBUG            = environ['DEBUG'] == 'True'
 
 #
 #   Functions
 #
 
-def parseAndStoreCafeXML(xml: ET.Element, restaurant: str, awDB: Databases, # context
-                     ) -> None:
+def parseAndStoreCafeXML(xml: ET.Element, restaurant: str, awDB: Databases, context) -> None:
     """
     This function reads the XML document and will parse them into dish entities.
     The entities are write to the approchiate AppWrite database. 
@@ -58,7 +60,7 @@ def parseAndStoreCafeXML(xml: ET.Element, restaurant: str, awDB: Databases, # co
 
     for component in xml.findall('Component'):
 
-        date = '2024-08-26'
+        date = '1970-01-01' # date is not present in data
         try:
             menuName = component.attrib['RecipeGroup']
         except:
@@ -81,7 +83,7 @@ def parseAndStoreCafeXML(xml: ET.Element, restaurant: str, awDB: Databases, # co
             dishAdditives.append(mapAdditivesToShortcuts(additives.attrib['name']))
             dishAdditives = checkImplicitAddtives(prettifyDishName(dishName), menuName)
 
-#** Write them to ApWrite Database
+    #** Write them to ApWrite Database
 
         # rename raw-data to human readable name
         menuName = humanizeMenuLineNames(menuName)
@@ -97,7 +99,9 @@ def parseAndStoreCafeXML(xml: ET.Element, restaurant: str, awDB: Databases, # co
             }
             awDB.create_document(AW_DATABASE_ID, AW_COLLECTION_ID, ID.unique(), document)
         except Exception as e:
-            print(f'[-] Failed to create document: {e}')
+            if DEBUG:
+                cloudPrint(context, f'[-] Failed to create document: {e}')
             continue # should not (!) exit 
         
-        print(f'[+] [{restaurant}][{date}]: {menuName} | {prettifyDishName(dishName)} | {dishPrice} | {list(set(dishAdditives))}')
+        if DEBUG:
+            cloudPrint(context, f'[+] [{restaurant}][{date}]: {menuName} | {prettifyDishName(dishName)} | {dishPrice} | {list(set(dishAdditives))}')

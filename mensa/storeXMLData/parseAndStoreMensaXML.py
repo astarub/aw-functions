@@ -4,11 +4,12 @@
 #   Imports
 #
 
-from utils import  (
+from .utils import  (
     humanizeMenuLineNames,
     mapAdditivesToShortcuts,
     prettifyDishName,
-    checkImplicitAddtives
+    checkImplicitAddtives,
+    cloudPrint,
 )
 
 from appwrite.id import ID
@@ -29,12 +30,13 @@ MENULINES_SKIP   = ['USB','Sauce Extra','Schulessen 1','Schulessen 2']
 AW_DATABASE_ID   = environ['AW_DATABASE_ID']
 AW_COLLECTION_ID = environ['AW_COLLECTION_ID']
 
+DEBUG            = environ['DEBUG'] == 'True'
+
 #
 #   Functions
 #
 
-def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, # context
-                     ) -> None:
+def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, context) -> None:
     """
     This function reads the XML document and will parse them into dish entities.
     The entities are write to the approchiate AppWrite database. 
@@ -136,7 +138,9 @@ def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, # c
                     }
                     awDB.create_document(AW_DATABASE_ID, AW_COLLECTION_ID, ID.unique(), document)
                 except Exception as e:
-                    print(f'[-] Failed to create document: {e}')
+                    if DEBUG:
+                        cloudPrint(context, f'[-] Failed to create document: {e}')
                     continue # should not (!) exit 
                 
-                print(f'[+] [{_restaurant}][{date}]: {menuName} | {prettifyDishName(dishName)} | {dishPrice} | {list(set(dishAdditives))}')
+                if DEBUG:
+                    cloudPrint(context, f'[+] [{_restaurant}][{date}]: {menuName} | {prettifyDishName(dishName)} | {dishPrice} | {list(set(dishAdditives))}')

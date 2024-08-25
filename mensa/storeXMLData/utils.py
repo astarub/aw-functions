@@ -15,10 +15,10 @@ def humanizeMenuLineNames(menuLineName: str) -> str:
     Returns:
         str: readable name
     """    
-    if menuLineName == 'Komponente 1 RUB':
-        return 'Komponentenessen'
+    if 'Komponente' in menuLineName:
+        return 'Komponenten'
     elif menuLineName == 'Vegetarische Menükomponente RUB':
-        return 'Vegetarische Menükomponente'
+        return 'Komponenten'
     elif menuLineName == 'Vegetarischer Sprinter RUB':
         return 'Sprinter'
     elif menuLineName == 'Beilagen RUB':
@@ -37,6 +37,8 @@ def humanizeMenuLineNames(menuLineName: str) -> str:
         return 'Grill Cube'
     elif menuLineName == 'Salattheke SB':
         return 'Salattheke'
+    elif menuLineName == 'Nudeltheke SB':
+        return 'Nudeltheke'
     else:
         return menuLineName.strip()
     
@@ -177,7 +179,7 @@ def prettifyDishName(dishName: str) -> str:
         .strip()
     )
     
-    if tmp == 'Salattheke':
+    if tmp == 'Salattheke' or tmp == 'Salattheke SB':
         return 'Diverse frei zusammenstellbare Auswahl (auch vegetarisch und vegan)'
     else:
         return tmp
@@ -213,3 +215,17 @@ def checkImplicitAddtives(*argv) -> list[str]:
             additives.append('H')
 
     return additives
+
+
+def cloudPrint(context, string: str) -> None:
+    """
+    Print a string either to terminal or AppWrite cloud function context.
+
+    Args:
+        string (str): The string to be printed.
+        context (dynamic): Either '' or a the AppWrite cloud function context. 
+    """    
+    if context == '':
+        print(string)
+    else:
+        context.log(string)
