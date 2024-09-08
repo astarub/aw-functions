@@ -28,6 +28,8 @@ class NewsRepository {
       final appFeed = await newsDatasource.getAppFeedAsJson();
       final newsXmlList = newsXml.findAllElements('item');
 
+      context.log('[#] Parsing news entities. Locale $locale');
+
       final List<NewsEntity> entities = [];
 
       for (final e in astaFeed) {
@@ -57,16 +59,22 @@ class NewsRepository {
         entities.add(NewsEntity.fromXML(e, imageData));
       });
 
+      
+      context.log('[+] Parsed news entities. Locale $locale');
+
       if (locale != 'de') {
         try {
+          context.log('[#] Translating news entities. Locale $locale');
           final translatedEntitiesFutures = entities.map((e) => translateNewsEntity(e, locale)).toList();
           final translatedEntities = await Future.wait(translatedEntitiesFutures);
 
+          context.log('[+] Translated news entities. Locale $locale');
+
           return Right(translatedEntities);
         } catch (e) {
+          context.error('[-] Translation failed. Error: $e');
           switch (e.runtimeType) {
             case const (HandshakeException):
-              context.error('Translation failed. Using untranslated news');
               return Right(entities);
             default:
               return Left(GeneralFailure());
@@ -90,24 +98,42 @@ class NewsRepository {
 
   Future<NewsEntity> translateNewsEntity(NewsEntity entity, String languageCode) async {
     // Translate title
-    final translatedTitle = await translateText(entity.title, 'auto', languageCode);
+    var translatedTitle;
+
+    try {
+      translatedTitle = await translateText(entity.title, 'auto', languageCode);
+    } catch (e) {
+      context.error('[-] Error while translating news entity. Error: $e');
+    }
 
     // Translate description
     final descriptionChunks = chunk(entity.description);
-    final translatedDescriptionChunks = await Future.wait(
-      descriptionChunks.map((chunk) {
-        return translateText(chunk, 'auto', languageCode);
-      }),
-    );
+    var translatedDescriptionChunks;
+
+    try {
+      await Future.wait(
+        descriptionChunks.map((chunk) {
+          return translateText(chunk, 'auto', languageCode);
+        }),
+      );
+    } catch (e) {
+      context.error('[-] Error while translating description chunks. Error: $e');
+    }
     final translatedDescription = translatedDescriptionChunks.join();
 
     // Translate content
     final contentChunks = chunk(entity.content);
-    final translatedContentChunks = await Future.wait(
-      contentChunks.map((chunk) {
-        return translateText(chunk, 'auto', languageCode);
-      }),
-    );
+    var translatedContentChunks;
+
+    try {
+      translatedContentChunks = await Future.wait(
+        contentChunks.map((chunk) {
+          return translateText(chunk, 'auto', languageCode);
+        }),
+      );
+    } catch (e) {
+      context.error('[-] Error while translating content chunks. Error: $e');
+    }
     final translatedContent = translatedContentChunks.join();
 
     final translatedEntity = NewsEntity(
