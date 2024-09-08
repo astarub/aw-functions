@@ -56,4 +56,5 @@ Future<dynamic> main(final context) async {
       });
     }
   }
+  return context.res.send('Successfully got the RUB, AStA and App news feed.');
 }
