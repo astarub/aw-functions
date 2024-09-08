@@ -17,7 +17,7 @@ Future<String> translateText(String text, String sourceLang, String targetLang) 
   );
 
   if (response.statusCode == 200) {
-    final jsonResponse = jsonDecode(response.body);
+    final jsonResponse = json.decode(utf8.decode(response.bodyBytes));
     return jsonResponse['translatedText'];
   } else {
     throw Exception('Failed to translate text');
