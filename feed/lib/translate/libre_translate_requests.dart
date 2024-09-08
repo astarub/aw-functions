@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 
 Future<String> translateText(String text, String sourceLang, String targetLang) async {
@@ -12,7 +13,7 @@ Future<String> translateText(String text, String sourceLang, String targetLang) 
       'source': sourceLang,
       'target': targetLang,
       'format': 'text',
-      'api_key': '499e5b88-3940-4a3e-a309-5cfdc8cc906a',
+      'api_key': Platform.environment['TRANSLATE_API_KEY'],
     }),
   );
 
