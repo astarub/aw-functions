@@ -155,9 +155,9 @@ Future<void> isolateAppFeed(List<dynamic> args) async {
   }
 
   if (pages > 1) {
-    context.log('[#] Retrieving RUB news feed.');
     final List<Future<void>> futures = [];
     for (int i = 2; i <= pages; i++) {
+      context.log('[#] Retrieving app news feed. Page $i');
       futures.add(getAppFeedPage(i));
     }
 
