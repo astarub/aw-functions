@@ -89,7 +89,7 @@ class NewsDatasource {
       context.error('Unable to retrieve the asta feed: Status code: ${response.statusCode}');
       throw ServerException();
     } else {
-      context.log('[#] Retrieved AStA news feed.');
+      context.log('[+] Retrieved AStA news feed.');
       return response.data;
     }
   }
@@ -122,6 +122,8 @@ class NewsDatasource {
       context.error('Unable to start an isolate for the app feed. Status code: ${response.statusCode}');
       throw ParseException();
     }
+
+    context.log('[+] Got app feed.');
 
     return data;
   }

@@ -43,6 +43,7 @@ Future<dynamic> main(final context) async {
     if(data['news'] == null || data['news']!.length == 0) continue;
 
     for(final NewsEntity n in data['news']!) {
+      context.log(n.url);
       String encoded;
       try {
         encoded = jsonEncode(n.toInternalJson());
