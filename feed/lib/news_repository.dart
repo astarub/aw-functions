@@ -111,7 +111,7 @@ class NewsRepository {
     var translatedDescriptionChunks;
 
     try {
-      await Future.wait(
+      translatedDescriptionChunks = await Future.wait(
         descriptionChunks.map((chunk) {
           return translateText(chunk, 'auto', languageCode);
         }),

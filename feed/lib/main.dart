@@ -87,5 +87,7 @@ Future<dynamic> main(final context) async {
     }
     context.log("[+] Wrote $wrote entities for locale $locale.");
   }
+  context.log("[++] All operations completed. News feed saved. Feeds saved: RUB, AStA, App");
+  
   return context.res.send('Successfully got the RUB, AStA and App news feed.');
 }
