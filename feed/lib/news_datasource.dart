@@ -20,6 +20,7 @@ class NewsDatasource {
   /// Request news feed from news.rub.de/newsfeed.
   /// Throws a server excpetion if respond code is not 200.
   Future<XmlDocument> getNewsfeedAsXml() async {
+    context.log('[#] Retrieving RUB news feed.');
     // return type is xml-v1.
     final response = await client.get(Platform.environment['RUB_NEWS_FEED_URL'] ?? 'https://news.rub.de/newsfeed');
 
@@ -28,6 +29,7 @@ class NewsDatasource {
 
       throw ServerException();
     } else {
+      context.log('[+] Retrieved RUB news feed.');
       return XmlDocument.parse(response.data);
     }
   }
@@ -80,12 +82,14 @@ class NewsDatasource {
   /// Request posts from asta-bochum.de
   /// Throws a server exception if respond code is not 200.
   Future<List<dynamic>> getAStAFeedAsJson() async {
+    context.log('[#] Retrieving AStA news feed.');
     final response = await client.get(Platform.environment['ASTA_FEED_URL'] ?? 'https://asta-bochum.de/wp-json/wp/v2/posts');
 
     if (response.statusCode != 200) {
       context.error('Unable to retrieve the asta feed: Status code: ${response.statusCode}');
       throw ServerException();
     } else {
+      context.log('[#] Retrieved AStA news feed.');
       return response.data;
     }
   }
@@ -93,6 +97,7 @@ class NewsDatasource {
   /// Request posts from app.asta-bochum.de
   /// Throws a server exception if respond code is not 200.
   Future<List<dynamic>> getAppFeedAsJson() async {
+    context.log('[#] Retrieving App news feed.');
     final response = await client.get(Platform.environment['APP_FEED_URL'] ?? 'https://app.asta-bochum.de/wp-json/wp/v2/posts');
 
     if (response.statusCode != 200) {
@@ -106,8 +111,9 @@ class NewsDatasource {
       final int pages = int.parse(response.headers.value('x-wp-totalpages')!);
 
       final receivePort = ReceivePort();
+      context.log('[#] Spawning app feed isolate.');
 
-      final Isolate isolate = await Isolate.spawn(isolateAppFeed, [receivePort.sendPort, pages]);
+      final Isolate isolate = await Isolate.spawn(isolateAppFeed, [receivePort.sendPort, pages, context]);
 
       final List<dynamic> pageData = await receivePort.first;
 
@@ -123,9 +129,13 @@ class NewsDatasource {
 
 // Isolate function to fetch the app feed
 Future<void> isolateAppFeed(List<dynamic> args) async {
+
   if (args.isEmpty || args[0] is! SendPort || args[1] is! int) return;
   final SendPort sendPort = args[0];
   final int pages = args[1];
+  final context = args[2];
+
+  context.log('[+] Spawned an app isolate');
 
   final client = Dio();
   final List<dynamic> data = [];
@@ -139,11 +149,13 @@ Future<void> isolateAppFeed(List<dynamic> args) async {
 
       data.addAll(responseForPage.data);
     } catch (e) {
+      context.error('[-] Error in app feed isolate. Error: $e');
       return;
     }
   }
 
   if (pages > 1) {
+    context.log('[#] Retrieving RUB news feed.');
     final List<Future<void>> futures = [];
     for (int i = 2; i <= pages; i++) {
       futures.add(getAppFeedPage(i));
@@ -151,6 +163,7 @@ Future<void> isolateAppFeed(List<dynamic> args) async {
 
     await Future.wait(futures);
   }
+  context.log('[+] Got app data.');
 
   sendPort.send(data);
 }
