@@ -53,7 +53,7 @@ Future<dynamic> main(final context) async {
       context.error("[-] Unable to retrieve documents in collection $locale. Error: $e");
     }
 
-    for(final doc in documents) {
+    for(final doc in documents.documents) {
       try {
         await database.deleteDocument(
           databaseId: 'feed',
