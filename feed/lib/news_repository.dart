@@ -28,7 +28,7 @@ class NewsRepository {
       final appFeed = await newsDatasource.getAppFeedAsJson();
       final newsXmlList = newsXml.findAllElements('item');
 
-      context.log('[#] Parsing news entities. Locale $locale');
+      context.log('[#] Parsing news entities. Locale: $locale');
 
       final List<NewsEntity> entities = [];
 
@@ -60,15 +60,15 @@ class NewsRepository {
       });
 
       
-      context.log('[+] Parsed news entities. Locale $locale');
+      context.log('[+] Parsed news entities. Locale: $locale');
 
       if (locale != 'de') {
         try {
-          context.log('[#] Translating news entities. Locale $locale');
+          context.log('[#] Translating news entities. Locale: $locale');
           final translatedEntitiesFutures = entities.map((e) => translateNewsEntity(e, locale)).toList();
           final translatedEntities = await Future.wait(translatedEntitiesFutures);
 
-          context.log('[+] Translated news entities. Locale $locale');
+          context.log('[+] Translated news entities. Locale: $locale');
 
           return Right(translatedEntities);
         } catch (e) {

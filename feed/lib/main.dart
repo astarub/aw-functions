@@ -52,6 +52,8 @@ Future<dynamic> main(final context) async {
     } catch (e) {
       context.error("[-] Unable to retrieve documents in collection $locale. Error: $e");
     }
+    
+    int cleared = 0;
 
     for(final doc in documents.documents) {
       try {
@@ -60,10 +62,13 @@ Future<dynamic> main(final context) async {
           collectionId: locale,
           documentId: doc.$id,
         );
+        cleared++;
       } catch (e) {
         context.error("[-] Unable to delete document ${doc.$id}. Error: $e");
       }
     }
+
+    context.log("[+] Cleared $cleared documents for in collection $locale.");
 
     int wrote = 0;
 
