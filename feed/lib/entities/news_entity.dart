@@ -53,7 +53,7 @@ class NewsEntity {
     final title = xml.getElement('title')!.innerText;
     final url = xml.getElement('link')!.innerText;
     final description = xml.getElement('description')!.innerText;
-    final pubDate = xml.getElement('pubDate')!.innerText;
+    final pubDate = DateFormat('E, d MMM yyyy hh:mm:ss Z', 'en_US').parse(xml.getElement('pubDate')!.innerText);
 
     /// Regular Expression to remove unwanted HTML-Tags
     final RegExp htmlTags = RegExp(
@@ -67,7 +67,7 @@ class NewsEntity {
       title: title,
       url: url,
       description: description,
-      pubDate: pubDate,
+      pubDate: pubDate.toIso8601String(),
       imageUrl: List.castFrom(imageData['imageUrls'])[0],
       copyright: imageData['copyright'],
     );
@@ -91,7 +91,7 @@ class NewsEntity {
   /// Returns a NewsEntity from a JSON object provided by an external webserver
   factory NewsEntity.fromJSON({required Map<String, dynamic> json, required List<String> copyright}) {
     final title = Map<String, dynamic>.from(json['title'])['rendered'] as String;
-    final pubDate = json['date'];
+    final pubDate = DateTime.parse(json['date']);
     final url = json['link'];
     final author = json['author'];
     final categories = json['categories'];
@@ -123,7 +123,7 @@ class NewsEntity {
       title: title,
       url: url,
       description: description,
-      pubDate: pubDate,
+      pubDate: pubDate.toIso8601String(),
       author: author,
       categoryIds: List<int>.from(categories),
       copyright: copyright,
