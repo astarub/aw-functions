@@ -14,7 +14,7 @@ Future<dynamic> main(final context) async {
   final client = Client()
     .setEndpoint(Platform.environment['APPWRITE_FUNCTION_API_ENDPOINT']!)
     .setProject(Platform.environment['APPWRITE_FUNCTION_PROJECT_ID'])
-    .setKey(context.req.headers['x-appwrite-key']);
+    .setKey(Platform.environment['APPWRITE_FUNCTION_API_KEY']);
 
   final database = Databases(client);
 
