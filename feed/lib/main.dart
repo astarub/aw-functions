@@ -65,6 +65,8 @@ Future<dynamic> main(final context) async {
       }
     }
 
+    int wrote = 0;
+
     for(final NewsEntity n in data['news']!) {
       String encoded;
       try {
@@ -74,10 +76,16 @@ Future<dynamic> main(final context) async {
         continue;
       }
 
-      database.createDocument(databaseId: 'feed', collectionId: locale, documentId: ID.unique(), data: {
-        'json': encoded,
-      });
+      try {
+        database.createDocument(databaseId: 'feed', collectionId: locale, documentId: ID.unique(), data: {
+          'json': encoded,
+        });
+        wrote++;
+      } catch(e) {
+        context.error('[-] Error while creating news document. Error: $e');
+      }
     }
+    context.log("[+] Wrote $wrote entities for locale $locale.");
   }
   return context.res.send('Successfully got the RUB, AStA and App news feed.');
 }
