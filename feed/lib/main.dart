@@ -27,7 +27,8 @@ Future<dynamic> main(final context) async {
   var supportedLocales;
 
   try {
-    supportedLocales = await database.getDocument(databaseId: 'data', collectionId: 'config', documentId: 'supportedLocales').data['value'];
+    final temp = await database.getDocument(databaseId: 'data', collectionId: 'config', documentId: 'supportedLocales');
+    supportedLocales = temp.data['value'];
   } catch (e) {
     supportedLocales = ['de', 'en'];
 
