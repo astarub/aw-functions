@@ -7,8 +7,8 @@ import 'package:dio/dio.dart';
 
 import 'entities/news_entity.dart';
 import 'failures/failures.dart';
-import 'news_datasource.dart';
-import 'news_repository.dart';
+import 'news/news_datasource.dart';
+import 'news/news_repository.dart';
 
 Future<dynamic> main(final context) async {
   final client = Client()
@@ -27,6 +27,8 @@ Future<dynamic> main(final context) async {
   final supportedLocalesDoc = await database.getDocument(databaseId: 'data', collectionId: 'config', documentId: 'supportedLocales');
 
   for (final String locale in supportedLocalesDoc.data['value']) {
+    context.log('[#] Starting news retrieval for locale: $locale');
+
     Either<Failure, List<NewsEntity>> remoteFeed = await newsRepository.getRemoteNewsfeedAndTranslate(locale: locale);
 
     final Map<String, List<dynamic>> data = {
@@ -54,6 +56,7 @@ Future<dynamic> main(final context) async {
     }
     
     int cleared = 0;
+    bool error = false;
 
     for(final doc in documents.documents) {
       try {
@@ -65,10 +68,14 @@ Future<dynamic> main(final context) async {
         cleared++;
       } catch (e) {
         context.error("[-] Unable to delete document ${doc.$id}. Error: $e");
+        error = true;
+        break;
       }
     }
 
-    context.log("[+] Cleared $cleared documents for in collection $locale.");
+    if(!error) context.log("[+] Cleared $cleared documents in collection $locale.");
+
+    context.log('[#] Commencing write process.');
 
     int wrote = 0;
 
@@ -77,7 +84,7 @@ Future<dynamic> main(final context) async {
       try {
         encoded = jsonEncode(n.toInternalJson());
       } catch (e) {
-        context.error('Unable to convert news entity to json for news entity with URL: ${n.url}');
+        context.error('[-] Unable to convert news entity to json for news entity with URL: ${n.url}');
         continue;
       }
 
@@ -90,9 +97,9 @@ Future<dynamic> main(final context) async {
         context.error('[-] Error while creating news document. Error: $e');
       }
     }
-    context.log("[+] Wrote $wrote entities for locale $locale.");
+    context.log("[+] Completed news retrieval for locale $locale. Documents written: $wrote");
   }
-  context.log("[++] All operations completed. News feed saved. Feeds saved: RUB, AStA, App");
+  context.log("[++] All operations completed. News feed saved.");
   
   return context.res.send('Successfully got the RUB, AStA and App news feed.');
 }

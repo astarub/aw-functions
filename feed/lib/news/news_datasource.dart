@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:html/parser.dart' as html;
 import 'package:xml/xml.dart';
 
-import 'failures/exceptions.dart';
+import '../failures/exceptions.dart';
 
 class NewsDatasource {
   /// Dio client to perfrom network operations

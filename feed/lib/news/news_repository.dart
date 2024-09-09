@@ -4,11 +4,11 @@ import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:xml/xml.dart';
 
-import 'entities/news_entity.dart';
-import 'failures/exceptions.dart';
-import 'failures/failures.dart';
+import '../entities/news_entity.dart';
+import '../failures/exceptions.dart';
+import '../failures/failures.dart';
 import 'news_datasource.dart';
-import 'translate/libre_translate_requests.dart';
+import '../translate/libre_translate_requests.dart';
 
 
 class NewsRepository {
@@ -28,7 +28,7 @@ class NewsRepository {
       final appFeed = await newsDatasource.getAppFeedAsJson();
       final newsXmlList = newsXml.findAllElements('item');
 
-      context.log('[#] Parsing news entities. Locale: $locale');
+      context.log('[#] Parsing news entities.');
 
       final List<NewsEntity> entities = [];
 
@@ -60,15 +60,15 @@ class NewsRepository {
       });
 
       
-      context.log('[+] Parsed news entities. Locale: $locale');
+      context.log('[+] Parsed news entities.');
 
       if (locale != 'de') {
         try {
-          context.log('[#] Translating news entities. Locale: $locale');
+          context.log('[#] Translating news entities');
           final translatedEntitiesFutures = entities.map((e) => translateNewsEntity(e, locale)).toList();
           final translatedEntities = await Future.wait(translatedEntitiesFutures);
 
-          context.log('[+] Translated news entities. Locale: $locale');
+          context.log('[+] Translated news entities');
 
           return Right(translatedEntities);
         } catch (e) {
