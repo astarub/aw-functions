@@ -97,7 +97,7 @@ class NewsDatasource {
   /// Request posts from app.asta-bochum.de
   /// Throws a server exception if respond code is not 200.
   Future<List<dynamic>> getAppFeedAsJson() async {
-    context.log('[#] Retrieving App news feed.');
+    context.log('[#] Retrieving app news feed.');
     final response = await client.get(Platform.environment['APP_FEED_URL'] ?? 'https://app.asta-bochum.de/wp-json/wp/v2/posts');
 
     if (response.statusCode != 200) {

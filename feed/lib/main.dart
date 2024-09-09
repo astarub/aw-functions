@@ -24,9 +24,17 @@ Future<dynamic> main(final context) async {
 
   final newsRepository = NewsRepository(newsDatasource: newsDatasource, context: context);
   
-  final supportedLocalesDoc = await database.getDocument(databaseId: 'data', collectionId: 'config', documentId: 'supportedLocales');
+  var supportedLocales;
 
-  for (final String locale in supportedLocalesDoc.data['value']) {
+  try {
+    supportedLocales = await database.getDocument(databaseId: 'data', collectionId: 'config', documentId: 'supportedLocales').data['value'];
+  } catch (e) {
+    supportedLocales = ['de', 'en'];
+
+    context.error('[#] Unable to get supported locales document from the database. Falling back to locales: de, en');
+  }
+
+  for (final String locale in supportedLocales) {
     context.log('[#] Starting news retrieval for locale: $locale');
 
     Either<Failure, List<NewsEntity>> remoteFeed = await newsRepository.getRemoteNewsfeedAndTranslate(locale: locale);
@@ -42,7 +50,10 @@ Future<dynamic> main(final context) async {
     );
 
 
-    if(data['news'] == null || data['news']!.length == 0) continue;
+    if(data['news'] == null || data['news']!.length == 0) {
+      context.log('[-] No news present. Number of failures: ${data['failures']!.length}. Continuing with the next locale on hand.');
+      continue;
+    }
 
     var documents;
 
@@ -52,7 +63,7 @@ Future<dynamic> main(final context) async {
         collectionId: locale,
       );
     } catch (e) {
-      context.error("[-] Unable to retrieve documents in collection $locale. Error: $e");
+      context.error('[-] Unable to retrieve documents in collection $locale. Error: $e');
     }
     
     int cleared = 0;
@@ -67,13 +78,13 @@ Future<dynamic> main(final context) async {
         );
         cleared++;
       } catch (e) {
-        context.error("[-] Unable to delete document ${doc.$id}. Error: $e");
+        context.error('[-] Unable to delete document ${doc.$id}. Error: $e');
         error = true;
         break;
       }
     }
 
-    if(!error) context.log("[+] Cleared $cleared documents in collection $locale.");
+    if(!error) context.log('[+] Cleared $cleared documents in collection $locale.');
 
     context.log('[#] Commencing write process.');
 
@@ -97,9 +108,13 @@ Future<dynamic> main(final context) async {
         context.error('[-] Error while creating news document. Error: $e');
       }
     }
-    context.log("[+] Completed news retrieval for locale $locale. Documents written: $wrote");
+    context.log('[+] Write process completed.');
+
+    context.log('[+] Completed news retrieval for locale $locale. Documents written: $wrote');
+
+    context.log('------------------------------------------------------------------------------------------------');
   }
-  context.log("[++] All operations completed. News feed saved.");
+  context.log('[++] All operations completed. News feed saved.');
   
   return context.res.send('Successfully got the RUB, AStA and App news feed.');
 }
