@@ -92,9 +92,9 @@ class NewsRepository {
 
 
   Future<NewsEntity> translateNewsEntity(NewsEntity entity, String languageCode) async {
-    var translatedTitle;
-    var translatedDescription;
-    var translatedContent;
+    var translatedTitle = "";
+    var translatedDescription = "";
+    var translatedContent = "";
 
     // Translate title
     if(entity.title.isNotEmpty) {
