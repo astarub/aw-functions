@@ -107,34 +107,22 @@ class NewsRepository {
     }
 
     // Translate description
-    final descriptionChunks = chunk(entity.description);
-    var translatedDescriptionChunks;
+    var translatedDescription;
 
     try {
-      translatedDescriptionChunks = await Future.wait(
-        descriptionChunks.map((chunk) {
-          return translateText(chunk, 'auto', languageCode, context);
-        }),
-      );
+      translatedDescription = await  translateText(entity.description, 'auto', languageCode, context);
     } catch (e) {
-      context.error('[-] Error while translating description chunks. Error: $e');
+      context.error('[-] Error while translating description. Error: $e');
     }
-    final translatedDescription = translatedDescriptionChunks.join();
 
     // Translate content
-    final contentChunks = chunk(entity.content);
-    var translatedContentChunks;
+    var translatedContent;
 
     try {
-      translatedContentChunks = await Future.wait(
-        contentChunks.map((chunk) {
-          return translateText(chunk, 'auto', languageCode, context);
-        }),
-      );
+      translatedContent = await translateText(entity.content, 'auto', languageCode, context);
     } catch (e) {
-      context.error('[-] Error while translating content chunks. Error: $e');
+      context.error('[-] Error while translating content. Error: $e');
     }
-    final translatedContent = translatedContentChunks.join();
 
     final translatedEntity = NewsEntity(
       title: translatedTitle,
@@ -149,25 +137,5 @@ class NewsRepository {
       videoUrl: entity.videoUrl,
     );
     return translatedEntity;
-  }
-
-  List<String> chunk(String str) {
-    final List<String> list = [];
-    if (str.length <= 500) {
-      list.add(str);
-      return list;
-    }
-    const divisionIndex = 500;
-    for (int i = 0; i < str.length; i += divisionIndex) {
-      try {
-        final tempString = str.substring(i, i + divisionIndex);
-        list.add(tempString);
-      } catch (e) {
-        final tempString = str.substring(i);
-        list.add(tempString);
-        break;
-      }
-    }
-    return list;
   }
 }
