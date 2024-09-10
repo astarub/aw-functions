@@ -101,7 +101,7 @@ class NewsRepository {
     var translatedTitle;
 
     try {
-      translatedTitle = await translateText(entity.title, 'auto', languageCode);
+      translatedTitle = await translateText(entity.title, 'auto', languageCode, context);
     } catch (e) {
       context.error('[-] Error while translating news entity. Error: $e');
     }
@@ -113,7 +113,7 @@ class NewsRepository {
     try {
       translatedDescriptionChunks = await Future.wait(
         descriptionChunks.map((chunk) {
-          return translateText(chunk, 'auto', languageCode);
+          return translateText(chunk, 'auto', languageCode, context);
         }),
       );
     } catch (e) {
@@ -128,7 +128,7 @@ class NewsRepository {
     try {
       translatedContentChunks = await Future.wait(
         contentChunks.map((chunk) {
-          return translateText(chunk, 'auto', languageCode);
+          return translateText(chunk, 'auto', languageCode, context);
         }),
       );
     } catch (e) {

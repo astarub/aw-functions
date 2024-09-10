@@ -4,7 +4,8 @@ import 'package:http/http.dart' as http;
 
 import '../failures/exceptions.dart';
 
-Future<String> translateText(String text, String sourceLang, String targetLang) async {
+Future<String> translateText(String text, String sourceLang, String targetLang, dynamic context) async {
+  context.error(text);
   final response = await http.post(
     Uri.parse('https://translate.app.asta-bochum.de/translate'),
     headers: {
