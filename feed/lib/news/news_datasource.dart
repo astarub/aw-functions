@@ -123,7 +123,7 @@ class NewsDatasource {
       throw ParseException();
     }
 
-    context.log('[+] Got app feed.');
+    context.log('[+] Retrieve app news feed.');
 
     return data;
   }

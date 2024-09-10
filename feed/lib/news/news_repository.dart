@@ -65,6 +65,7 @@ class NewsRepository {
       if (locale != 'de') {
         try {
           context.log('[#] Translating news entities');
+
           final translatedEntitiesFutures = entities.map((e) => translateNewsEntity(e, locale)).toList();
           final translatedEntities = await Future.wait(translatedEntitiesFutures);
 
@@ -73,12 +74,8 @@ class NewsRepository {
           return Right(translatedEntities);
         } catch (e) {
           context.error('[-] Translation failed. Error: $e');
-          switch (e.runtimeType) {
-            case const (HandshakeException):
-              return Right(entities);
-            default:
-              return Left(GeneralFailure());
-          }
+
+          return Left(GeneralFailure());
         }
       } else {
         return Right(entities);
@@ -87,8 +84,6 @@ class NewsRepository {
       switch (e.runtimeType) {
         case const (ServerException):
           return Left(ServerFailure());
-        case const (HandshakeException):
-          return Left(TranslationFailure());
         default:
           return Left(GeneralFailure());
       }
@@ -97,31 +92,35 @@ class NewsRepository {
 
 
   Future<NewsEntity> translateNewsEntity(NewsEntity entity, String languageCode) async {
-    // Translate title
     var translatedTitle;
+    var translatedDescription;
+    var translatedContent;
 
-    try {
-      translatedTitle = await translateText(entity.title, 'auto', languageCode, context);
-    } catch (e) {
-      context.error('[-] Error while translating news entity. Error: $e');
+    // Translate title
+    if(entity.title.isNotEmpty) {
+      try {
+        translatedTitle = await translateText(entity.title, 'auto', languageCode, context);
+      } catch (e) {
+        context.error('[-] Error while translating news entity. Error: $e');
+      }
     }
 
     // Translate description
-    var translatedDescription;
-
-    try {
-      translatedDescription = await  translateText(entity.description, 'auto', languageCode, context);
-    } catch (e) {
-      context.error('[-] Error while translating description. Error: $e');
+    if(entity.description.isNotEmpty) {
+      try {
+        translatedDescription = await  translateText(entity.description, 'auto', languageCode, context);
+      } catch (e) {
+        context.error('[-] Error while translating description. Error: $e');
+      }
     }
 
     // Translate content
-    var translatedContent;
-
-    try {
-      translatedContent = await translateText(entity.content, 'auto', languageCode, context);
-    } catch (e) {
-      context.error('[-] Error while translating content. Error: $e');
+    if(entity.content.isNotEmpty) {
+      try {
+        translatedContent = await translateText(entity.content, 'auto', languageCode, context);
+      } catch (e) {
+        context.error('[-] Error while translating content. Error: $e');
+      }
     }
 
     final translatedEntity = NewsEntity(
