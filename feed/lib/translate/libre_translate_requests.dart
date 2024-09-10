@@ -27,4 +27,6 @@ Future<String> translateText(String text, String sourceLang, String targetLang, 
   } else {
     throw ServerException();
   }
+
+  return "";
 }
