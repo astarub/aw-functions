@@ -50,7 +50,8 @@ class Organizer {
   Map<String, dynamic> toInternalJson() {
     return {
       'id': id,
-      'url': name,
+      'url': url,
+      'name': name,
       'slug': slug,
       'phone': phone,
       'website': website,
