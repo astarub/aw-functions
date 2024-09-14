@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:appwrite_function/events/calendar_usecases.dart';
 import 'package:dart_appwrite/dart_appwrite.dart';
 import 'package:dio/dio.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'events/calendar_datasource.dart';
 import 'events/calendar_repository.dart';
@@ -22,6 +23,8 @@ Future<dynamic> main(final context) async {
   final calendarDatasource = CalendarDatasource(client: dioClient, context: context);
   final calendarRepository = CalendarRepository(calendarDatasource: calendarDatasource, context: context);
   final calendarUsecases = CalendarUsecases(calendarRepository: calendarRepository, context: context);
+
+  initializeDateFormatting();
   
   var supportedLocales;
 
