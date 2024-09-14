@@ -10,8 +10,9 @@ import 'calendar_datasource.dart';
 
 class CalendarRepository {
   final CalendarDatasource calendarDatasource;
+  final dynamic context;
 
-  CalendarRepository({required this.calendarDatasource});
+  CalendarRepository({required this.calendarDatasource, required this.context});
 
   /// Return a list of events or a failure
   Future<Either<Failure, List<Event>>> getAStAEvents() async {
@@ -30,6 +31,8 @@ class CalendarRepository {
 
       return Right(entities);
     } catch (e) {
+      context.error('[-] Error while fetching the asta events in the calendar repository. Exception: $e');
+
       switch (e.runtimeType) {
         case const (ServerException):
           return Left(ServerFailure());
@@ -59,6 +62,8 @@ class CalendarRepository {
 
       return Right(entities);
     } catch (e) {
+      context.error('[-] Error while fetching the app events in the calendar repository. Exception: $e');
+
       switch (e.runtimeType) {
         case const (ServerException):
           return Left(ServerFailure());

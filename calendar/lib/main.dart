@@ -19,8 +19,8 @@ Future<dynamic> main(final context) async {
 
   final dioClient = Dio();
 
-  final calendarDatasource = CalendarDatasource(client: dioClient);
-  final calendarRepository = CalendarRepository(calendarDatasource: calendarDatasource);
+  final calendarDatasource = CalendarDatasource(client: dioClient, context: context);
+  final calendarRepository = CalendarRepository(calendarDatasource: calendarDatasource, context: context);
   final calendarUsecases = CalendarUsecases(calendarRepository: calendarRepository, context: context);
   
   var supportedLocales;

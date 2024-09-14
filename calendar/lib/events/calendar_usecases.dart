@@ -22,6 +22,8 @@ class CalendarUsecases {
       'events': <Event>[],
     };
 
+    context.log('[#] Loading events.');
+
     // get events from AStA API and cached events
     final Either<Failure, List<Event>> remoteEvents = await calendarRepository.getAStAEvents();
     final Either<Failure, List<Event>> remoteAppEvents = await calendarRepository.getAppEvents();
@@ -36,14 +38,16 @@ class CalendarUsecases {
       (events) => data['events'] = List<Event>.from(data['events']!) + List<Event>.from(events),
     );
 
+    context.log('[#] Loaded events and failures.');
+
     if (locale != 'de') {
       try {
-        context.log('[#] Translating event entities');
+        context.log('[#] Translating event entities.');
 
         final translatedEntitiesFutures = data['events']!.map((e) => translateEventEntity(e, locale)).toList();
         final translatedEntities = await Future.wait(translatedEntitiesFutures);
 
-        context.log('[+] Translated event entities');
+        context.log('[+] Translated event entities.');
 
         data['events'] = translatedEntities;
       } catch (e) {

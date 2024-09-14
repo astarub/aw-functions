@@ -12,25 +12,29 @@ const String appEvents = 'https://app.asta-bochum.de/wp-json/tribe/events/v1/eve
 class CalendarDatasource {
   /// Dio client to perfrom network operations
   final Dio client;
+  final dynamic context;
 
   CalendarDatasource({
     required this.client,
+    required this.context,
   });
 
   /// Request events from tribe api.
   /// Throws a server excpetion if respond code is not 200.
   Future<List<dynamic>> getAStAEventsAsJsonArray() async {
-    final response = await client.get(Platform.environment['ASTA_EVENTS_URL'] ?? astaEvents);
+    final Response response = await client.get(Platform.environment['ASTA_EVENTS_URL'] ?? astaEvents);
 
     late final Map<String, dynamic> responseBody;
 
     if (response.statusCode != 200) {
+      context.error('[-] Error while fetching the asta events. Exception: ${response.data}');
       throw ServerException();
     }
 
     try {
       responseBody = response.data as Map<String, dynamic>;
     } catch (e) {
+      context.error('[-] Error while parsing AStA response data. Exception: $e');
       throw JsonException();
     }
 
@@ -42,12 +46,13 @@ class CalendarDatasource {
 
       final receivePort = ReceivePort();
 
-      await Isolate.spawn(isolateAStACalendar, [receivePort.sendPort, pages]);
+      await Isolate.spawn(isolateAStACalendar, [receivePort.sendPort, pages, context]);
 
       final List<dynamic> pageData = await receivePort.first;
 
       events.addAll(pageData);
     } catch (e) {
+      context.log('[-] Erro while spawning an isolate for the AStA events. Exception: $e');
       throw ServerException();
     }
 
@@ -62,12 +67,14 @@ class CalendarDatasource {
     late final Map<String, dynamic> responseBody;
 
     if (response.statusCode != 200) {
+      context.error('[-] Error while fetching the app events. Exception: ${response.data}');
       throw ServerException();
     }
 
     try {
       responseBody = response.data as Map<String, dynamic>;
     } catch (e) {
+      context.error('[-] Error while parsing app response data. Exception: $e');
       throw JsonException();
     }
 
@@ -79,12 +86,13 @@ class CalendarDatasource {
 
       final receivePort = ReceivePort();
 
-      await Isolate.spawn(isolateAppCalendar, [receivePort.sendPort, pages]);
+      await Isolate.spawn(isolateAppCalendar, [receivePort.sendPort, pages, context]);
 
       final List<dynamic> pageData = await receivePort.first;
 
       events.addAll(pageData);
     } catch (e) {
+      context.log('[-] Erro while spawning an isolate for the app events. Exception: $e');
       throw ServerException();
     }
 
@@ -96,6 +104,7 @@ Future<void> isolateAStACalendar(List<dynamic> args) async {
   if (args.isEmpty || args[0] is! SendPort || args[1] is! int) return;
   final SendPort sendPort = args[0];
   final int pages = args[1];
+  final dynamic context = args[2];
 
   final client = Dio();
   final List<dynamic> events = [];
@@ -111,6 +120,7 @@ Future<void> isolateAStACalendar(List<dynamic> args) async {
     try {
       responsePageBody = responseForPage.data as Map<String, dynamic>;
     } catch (e) {
+      context.error('[-] Error in asta isolate while parsing response data. Exception: $e');
       return;
     }
 
@@ -134,6 +144,7 @@ Future<void> isolateAppCalendar(List<dynamic> args) async {
   if (args.isEmpty || args[0] is! SendPort || args[1] is! int) return;
   final SendPort sendPort = args[0];
   final int pages = args[1];
+  final dynamic context = args[2];
 
   final client = Dio();
   final List<dynamic> events = [];
@@ -149,6 +160,7 @@ Future<void> isolateAppCalendar(List<dynamic> args) async {
     try {
       responsePageBody = responseForPage.data as Map<String, dynamic>;
     } catch (e) {
+      context.error('[-] Error in app isolate while parsing response data. Exception: $e');
       return;
     }
 
