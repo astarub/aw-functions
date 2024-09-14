@@ -113,7 +113,7 @@ class NewsDatasource {
       final receivePort = ReceivePort();
       context.log('[#] Spawning app feed isolate.');
 
-      final Isolate isolate = await Isolate.spawn(isolateAppFeed, [receivePort.sendPort, pages, context]);
+      await Isolate.spawn(isolateAppFeed, [receivePort.sendPort, pages, context]);
 
       final List<dynamic> pageData = await receivePort.first;
 
