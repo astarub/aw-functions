@@ -176,9 +176,9 @@ class Event {
       'allDay': allDay,
       'cost': cost,
       'website': website,
-      'categories': categories.map((e) => e.toInternalJson()),
+      'categories': categories.map((e) => e.toInternalJson()).toList(),
       'venue': venue.toInternalJson(),
-      'organizers': organizers.map((o) => o.toInternalJson()),
+      'organizers': organizers.map((o) => o.toInternalJson()).toList(),
       'author': author,
     };
   }
