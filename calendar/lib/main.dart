@@ -87,7 +87,7 @@ Future<dynamic> main(final context) async {
       try {
         encoded = jsonEncode(event.toInternalJson());
       } catch (e) {
-        context.error('[-] Unable to convert event entity to json for news entity with URL: ${event.url}');
+        context.error('[-] Unable to convert event entity with URL: ${event.url}. Exception: $e');
         continue;
       }
 
