@@ -109,6 +109,7 @@ def main(context):
         return
     
     for locale in supportedLocales:
+        cloudPrint(context, locale)
         #** Store current list of dishes
 
         # This is used in garbage collection later. Limit is set to 5000 to ensure
