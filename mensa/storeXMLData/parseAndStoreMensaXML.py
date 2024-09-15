@@ -62,7 +62,7 @@ def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, con
         cloudPrint('[-] Failed to get supported locales doc. Aborting.')
         return
     
-    print(supportedLocales)
+    cloudPrint(context, str(supportedLocales))
 
     #** Read XML File
 
