@@ -55,6 +55,14 @@ def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, con
         awDB (AppWrite Databases): The AppWrite Database connecter to create new entries.
         context: AppWrite Cloud Function Execution Context
     """    
+    supportedLocales = None
+    try:
+        supportedLocales = awDB.get_document( database_id = 'data', collection_id = 'config', document_id = 'supportedLocales')
+    except:
+        cloudPrint('[-] Failed to get supported locales doc. Aborting.')
+        return
+    
+    print(supportedLocales)
 
     #** Read XML File
 
@@ -126,6 +134,8 @@ def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, con
                 else:
                     # reset restaurant for looping
                     _restaurant = restaurant
+                    
+                
                 
                 try:
                     document = {
