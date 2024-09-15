@@ -136,6 +136,7 @@ def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, con
                     _restaurant = restaurant
                     
                 for locale in supportedLocales:
+                    cloudPrint(context, locale)
                     if locale != 'de':
                         try:
                             menuName = translateText(menuName, 'auto', locale, context)
