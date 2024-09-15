@@ -129,27 +129,30 @@ def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, loc
                     # reset restaurant for looping
                     _restaurant = restaurant
                     
+                dishName = prettifyDishName(dishName)
+                    
                 if locale != 'de':
                     try:
                         menuName = translateText(menuName, 'auto', locale, context)
-                        dishName = translateText(prettifyDishName(dishName), 'auto', locale, context)
+                        dishName = translateText(dishName, 'auto', locale, context)
                     except Exception as e:
+                        cloudPrint(context, f'[-] Failed translation. Exception: {e}')
                         continue # should not (!) exit 
                         
-                    try:
-                        document = {
-                            'date': date,
-                            'menuName': menuName,
-                            'dishName': prettifyDishName(dishName),
-                            'dishPrice': dishPrice,
-                            'dishAdditives': list(set(dishAdditives)), # remove duplicates
-                            'restaurant': _restaurant
-                        }
-                        awDB.create_document(AW_DATABASE_ID, locale, ID.unique(), document)
-                    except Exception as e:
-                        if DEBUG:
-                            cloudPrint(context, f'[-] Failed to create document: {e}')
-                        continue # should not (!) exit 
-                
+                try:
+                    document = {
+                        'date': date,
+                        'menuName': menuName,
+                        'dishName': dishName,
+                        'dishPrice': dishPrice,
+                        'dishAdditives': list(set(dishAdditives)), # remove duplicates
+                        'restaurant': _restaurant
+                    }
+                    awDB.create_document(database_id = AW_DATABASE_ID, collection_id = locale, document_id = ID.unique(), data=document)
+                except Exception as e:
                     if DEBUG:
-                        cloudPrint(context, f'[+] [{_restaurant}][{date}]: {menuName} | {prettifyDishName(dishName)} | {dishPrice} | {list(set(dishAdditives))}')
+                        cloudPrint(context, f'[-] Failed to create document: {str(e)}')
+                    continue # should not (!) exit 
+                
+                if DEBUG:
+                    cloudPrint(context, f'[+] [{_restaurant}][{date}]: {menuName} | {prettifyDishName(dishName)} | {dishPrice} | {list(set(dishAdditives))}')

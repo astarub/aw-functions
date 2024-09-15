@@ -23,7 +23,7 @@ def translateText(text: str, sourceLang: str, targetLang: str, context):
         
         return json_response['translatedText']
     else:
-        cloudPrint(context, f'[-] Translation server error. Status code: {response.status_code}. Content: {response.text}')
+        cloudPrint(context, f'[-] Translation server error. Status code: {response.status_code}. Body {response.text}')
         raise Exception('Translation server error.')
         
     
