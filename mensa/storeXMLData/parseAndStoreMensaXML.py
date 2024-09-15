@@ -38,7 +38,7 @@ DEBUG            = environ['DEBUG'] == 'True'
 #   Functions
 #
 
-def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, context) -> None:
+def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, locale:str,  context) -> None:
     """
     This function reads the XML document and will parse them into dish entities.
     The entities are write to the approchiate AppWrite database. 
@@ -56,13 +56,7 @@ def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, con
                           Possible values: mensa_rub, qwest, henkelmann, unikids and rote_bete
         awDB (AppWrite Databases): The AppWrite Database connecter to create new entries.
         context: AppWrite Cloud Function Execution Context
-    """    
-    supportedLocales = None
-    try:
-        supportedLocales = awDB.get_document( database_id = 'data', collection_id = 'config', document_id = 'supportedLocales')['value']
-    except:
-        cloudPrint('[-] Failed to get supported locales doc. Aborting.')
-        return
+    """ 
     
     #** Read XML File
 
@@ -121,7 +115,7 @@ def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, con
                 if len(dishAdditives) == 0: 
                     dishAdditives.append('VG')
 
-    #** Write them to ApWrite Database
+                #** Write them to ApWrite Database
 
                 # rename raw-data to human readable name
                 menuName = humanizeMenuLineNames(menuName)
@@ -135,14 +129,12 @@ def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, con
                     # reset restaurant for looping
                     _restaurant = restaurant
                     
-                for locale in supportedLocales:
-                    cloudPrint(context, locale)
-                    if locale != 'de':
-                        try:
-                            menuName = translateText(menuName, 'auto', locale, context)
-                            dishName = translateText(prettifyDishName(dishName), 'auto', locale, context)
-                        except Exception as e:
-                            continue # should not (!) exit 
+                if locale != 'de':
+                    try:
+                        menuName = translateText(menuName, 'auto', locale, context)
+                        dishName = translateText(prettifyDishName(dishName), 'auto', locale, context)
+                    except Exception as e:
+                        continue # should not (!) exit 
                         
                     try:
                         document = {
