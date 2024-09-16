@@ -62,6 +62,7 @@ Future<dynamic> main(final context) async {
       documents = await database.listDocuments(
         databaseId: 'feed',
         collectionId: locale,
+        queries: [Query.limit(1000)],
       );
     } catch (e) {
       context.error('[-] Unable to retrieve documents in collection $locale. Error: $e');
