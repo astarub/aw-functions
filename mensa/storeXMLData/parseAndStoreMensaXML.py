@@ -4,6 +4,7 @@
 #   Imports
 #
 
+import asyncio
 from .utils import  (
     humanizeMenuLineNames,
     mapAdditivesToShortcuts,
@@ -133,8 +134,8 @@ def parseAndStoreMensaXML(xml: ET.Element, restaurant: str, awDB: Databases, loc
                     
                 if locale != 'de':
                     try:
-                        menuName = translateText(menuName, 'auto', locale, context)
-                        dishName = translateText(dishName, 'auto', locale, context)
+                        menuName = asyncio.run(translateText(menuName, 'de', locale, context))
+                        dishName = asyncio.run(translateText(dishName, 'de', locale, context))
                     except Exception as e:
                         cloudPrint(context, f'[-] Failed translation. Exception: {e}')
                         continue # should not (!) exit 
