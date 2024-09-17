@@ -62,59 +62,47 @@ def workerFunction(awDB, locale, context, mensaRub, roteBete, qwest, bocholt, wh
         p.start()
         proc.append(p)
     except Exception as e:
-        UPDATE_DATA_FAILED |= True
         cloudPrint(context, f'[-] Failed updated RUB Mensa data: {e}')
         
     try:
-        if not UPDATE_DATA_FAILED: 
-            p = Process(target=parseAndStoreMensaXML, args=(roteBete, 'rote_bete', awDB, locale, context))
-            p.start()
-            proc.append(p)
+        p = Process(target=parseAndStoreMensaXML, args=(roteBete, 'rote_bete', awDB, locale, context))
+        p.start()
+        proc.append(p)
     except Exception as e:
-        UPDATE_DATA_FAILED |= True
         cloudPrint(context, f'[-] Failed updated Rote-Bete data: {e}')
         
-    try:
-        if not UPDATE_DATA_FAILED: 
-            p = Process(target=parseAndStoreMensaXML, args=(qwest, 'qwest', awDB, locale, context))
-            p.start()
-            proc.append(p)
+    try: 
+        p = Process(target=parseAndStoreMensaXML, args=(qwest, 'qwest', awDB, locale, context))
+        p.start()
+        proc.append(p)
     except Exception as e:
-        UPDATE_DATA_FAILED |= True
         cloudPrint(context, f'[-] Failed updated Q-West data: {e}')
         
     try:
-        if not UPDATE_DATA_FAILED: 
-            p = Process(target=parseAndStoreMensaXML, args=(bocholt, 'bocholt', awDB, locale, context))
-            p.start()
-            proc.append(p)
+        p = Process(target=parseAndStoreMensaXML, args=(bocholt, 'bocholt', awDB, locale, context))
+        p.start()
+        proc.append(p)
     except Exception as e:
-        UPDATE_DATA_FAILED |= True
         cloudPrint(context, f'[-] Failed updated data for Bocholt: {e}')
         
     try:
-        if not UPDATE_DATA_FAILED: 
-            p = Process(target=parseAndStoreMensaXML, args=(whsMensa, 'whs_mensa', awDB, locale, context))
-            p.start()
-            proc.append(p)
+        p = Process(target=parseAndStoreMensaXML, args=(whsMensa, 'whs_mensa', awDB, locale, context))
+        p.start()
+        proc.append(p)
     except Exception as e:
-        UPDATE_DATA_FAILED |= True
         cloudPrint(context, f'[-] Failed updated WHS mensa data: {e}')
         
     try:
-        if not UPDATE_DATA_FAILED: 
-            p = Process(target=parseAndStoreMensaXML, args=(recklinghausen, 'recklinghausen', awDB, locale, context))
-            p.start()
-            proc.append(p)
+        p = Process(target=parseAndStoreMensaXML, args=(recklinghausen, 'recklinghausen', awDB, locale, context))
+        p.start()
+        proc.append(p)
     except Exception as e:
-        UPDATE_DATA_FAILED |= True
         cloudPrint(context, f'[-] Failed updated data for Recklinghausen: {e}')
         
     for p in proc:
         p.join()
         
-    if not UPDATE_DATA_FAILED: 
-        cloudPrint(context, f'[+] Successfully updated dishes for locale {locale}')
+    cloudPrint(context, f'[+] Successfully updated dishes for locale {locale}')
         
     #! Do not parse cafeterias due lack of date information.
     # try:
