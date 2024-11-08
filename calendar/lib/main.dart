@@ -25,6 +25,10 @@ Future<dynamic> main(final context) async {
   final calendarUsecases = CalendarUsecases(calendarRepository: calendarRepository, context: context);
 
   initializeDateFormatting();
+
+  context.log('[#] Starting event retrieval.');
+  final Map<String, List<dynamic>> data = await calendarUsecases.getEvents();
+  context.log('[+] Finished event retrieval.');
   
   var supportedLocales;
 
@@ -38,13 +42,21 @@ Future<dynamic> main(final context) async {
   }
 
   for (final String locale in supportedLocales) {
-    context.log('[#] Starting events retrieval for locale: $locale');
-
-    final Map<String, List<dynamic>> data = await calendarUsecases.getEvents(locale);
+    context.log('[#] Starting translation for locale: $locale');
 
     if(data['events'] == null || data['events']!.length == 0) {
-      context.log('[-] No events present. Number of failures: ${data['failures']!.length}. Continuing with the next locale.');
-      continue;
+      context.log('[-] No events present. Number of failures: ${data['failures']!.length}. Aborting.');
+      break;
+    }
+
+    final List<Event> parsedEvents = List<Event>.from(data['events']!);
+
+    List<Event> translatedEvents; 
+
+    if(locale == 'de') {
+      translatedEvents = parsedEvents;
+    } else {
+      translatedEvents = await calendarUsecases.translateEvents(parsedEvents, locale);
     }
 
     var documents;
@@ -83,7 +95,7 @@ Future<dynamic> main(final context) async {
 
     int wrote = 0;
 
-    for(final Event event in data['events']!) {
+    for(final Event event in translatedEvents) {
       String encoded;
       try {
         encoded = jsonEncode(event.toInternalJson());

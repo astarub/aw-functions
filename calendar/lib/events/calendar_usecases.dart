@@ -1,3 +1,6 @@
+import 'dart:isolate';
+
+import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
 
 import 'package:appwrite_function/events/calendar_repository.dart';
@@ -5,6 +8,8 @@ import 'package:appwrite_function/events/calendar_repository.dart';
 import '../entities/event_entity.dart';
 import '../failures/failures.dart';
 import '../translate/libre_translate_requests.dart';
+
+final int MAX_THREADS = 4;
 
 class CalendarUsecases {
   final CalendarRepository calendarRepository;
@@ -15,7 +20,7 @@ class CalendarUsecases {
   /// Return a JSON object `data` that contains failures and events.
   ///
   /// data := { 'failures': List\<Failure>, 'events': List\<Event> }
-  Future<Map<String, List<dynamic>>> getEvents(String locale) async {
+  Future<Map<String, List<dynamic>>> getEvents() async {
     // return data
     final Map<String, List<dynamic>> data = {
       'failures': <Failure>[],
@@ -40,21 +45,6 @@ class CalendarUsecases {
 
     context.log('[#] Loaded events and failures.');
 
-    if (locale != 'de') {
-      try {
-        context.log('[#] Translating event entities.');
-
-        final translatedEntitiesFutures = data['events']!.map((e) => translateEventEntity(e, locale)).toList();
-        final translatedEntities = await Future.wait(translatedEntitiesFutures);
-
-        context.log('[+] Translated event entities.');
-
-        data['events'] = translatedEntities;
-      } catch (e) {
-        context.error('[-] Translation failed. Error: $e');
-      }
-    }
-
     List<Event>.from(data['events']!).sort((a, b) {
       return a.startDate.compareTo(b.startDate);
     });
@@ -62,7 +52,46 @@ class CalendarUsecases {
     return data;
   }
 
-  Future<Event> translateEventEntity(Event entity, String languageCode) async {
+  Future<List<Event>> translateEvents(List<Event> events, String locale) async {
+    context.log('[#] Starting translation of ${events.length} event(s).');
+
+    final List<List<Event>> slicedEvents = events.slices(MAX_THREADS).toList();
+
+    final List<Event> translatedEvents = [];
+
+    final ReceivePort receivePort = ReceivePort();
+
+    context.log('[#] Spawning translation isolates...');
+
+    for(int i = 0; i < slicedEvents.length; i++) {
+      await Isolate.spawn(translateIsolate, [receivePort.sendPort, slicedEvents[i], locale, i+1 == slicedEvents.length ? true : false, context]);
+    }
+
+    context.log('[#] Listening for translated events...');
+
+    receivePort.listen((data) {
+      Map<String, dynamic> result = data; 
+      List<Event> events = List<Event>.from(result['events']).toList();
+
+      translatedEvents.addAll(events);
+
+      if(result['last']){
+        receivePort.close();
+      }
+    });
+
+    List<Event>.from(translatedEvents).sort((a, b) {
+      return a.startDate.compareTo(b.startDate);
+    });
+
+    context.log('[#] Translated ${translatedEvents.length} event(s)...');
+
+    return translatedEvents;
+  }
+}
+
+Future<void> translateIsolate(List<dynamic> args) async {
+  Future<Event> translateEventEntity(Event entity, String languageCode, dynamic context) async {
     var translatedTitle = "";
     var translatedDescription = "";
 
@@ -78,7 +107,7 @@ class CalendarUsecases {
     // Translate description / content
     if(entity.description.isNotEmpty) {
       try {
-        translatedDescription = await  translateText(entity.description, 'auto', languageCode, context);
+        translatedDescription = await translateText(entity.description, 'auto', languageCode, context);
       } catch (e) {
         context.error('[-] Error while translating description. Error: $e');
       }
@@ -103,4 +132,34 @@ class CalendarUsecases {
       author: entity.author,
     );
   }
+
+  if (args.isEmpty || args[0] is! SendPort || args[1] is! int) return;
+  final SendPort sendPort = args[0];
+  final List<Event> events = args[1];
+  final String languageCode = args[2];
+  final bool last = args[3];
+  final dynamic context = args[4];
+
+  final List<Future<Event>> eventFutures = events.map((e) => translateEventEntity(e, languageCode, context)).toList();
+
+  List<Event> translatedEvents = [];
+
+  try {
+    translatedEvents = await Future.wait(eventFutures);
+  } catch(e) {
+    context.error("Error while translating: $e");
+  }
+
+  for(Event event in translatedEvents) {
+    if(event.title.isEmpty) {
+      translatedEvents.remove(event);
+    }
+  }
+
+  Map<String, dynamic> result =  {
+    'events': translatedEvents,
+    'last': last
+  };
+
+  sendPort.send(result);
 }
