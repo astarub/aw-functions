@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -27,7 +26,7 @@ class CalendarDatasource {
     late final Map<String, dynamic> responseBody;
 
     if (response.statusCode != 200) {
-      context.error('[-] Error while fetching the asta events. Exception: ${response.data}');
+      context.error('[-] Error while fetching the asta events. Exception: ${response.statusCode}, ${response.statusMessage}');
       throw ServerException();
     }
 
