@@ -45,7 +45,7 @@ class CalendarDatasource {
 
       final receivePort = ReceivePort();
 
-      await Isolate.spawn(isolateAStACalendar, [receivePort.sendPort, pages, context]);
+      await Isolate.spawn(isolateAStACalendar, [receivePort.sendPort, pages]);
 
       final List<dynamic> pageData = await receivePort.first;
 
@@ -85,7 +85,7 @@ class CalendarDatasource {
 
       final receivePort = ReceivePort();
 
-      await Isolate.spawn(isolateAppCalendar, [receivePort.sendPort, pages, context]);
+      await Isolate.spawn(isolateAppCalendar, [receivePort.sendPort, pages]);
 
       final List<dynamic> pageData = await receivePort.first;
 
@@ -103,7 +103,6 @@ Future<void> isolateAStACalendar(List<dynamic> args) async {
   if (args.isEmpty || args[0] is! SendPort || args[1] is! int) return;
   final SendPort sendPort = args[0];
   final int pages = args[1];
-  final dynamic context = args[2];
 
   final client = Dio();
   final List<dynamic> events = [];
@@ -119,7 +118,6 @@ Future<void> isolateAStACalendar(List<dynamic> args) async {
     try {
       responsePageBody = responseForPage.data as Map<String, dynamic>;
     } catch (e) {
-      context.error('[-] Error in asta isolate while parsing response data. Exception: $e');
       return;
     }
 
@@ -143,7 +141,6 @@ Future<void> isolateAppCalendar(List<dynamic> args) async {
   if (args.isEmpty || args[0] is! SendPort || args[1] is! int) return;
   final SendPort sendPort = args[0];
   final int pages = args[1];
-  final dynamic context = args[2];
 
   final client = Dio();
   final List<dynamic> events = [];
@@ -159,7 +156,6 @@ Future<void> isolateAppCalendar(List<dynamic> args) async {
     try {
       responsePageBody = responseForPage.data as Map<String, dynamic>;
     } catch (e) {
-      context.error('[-] Error in app isolate while parsing response data. Exception: $e');
       return;
     }
 
