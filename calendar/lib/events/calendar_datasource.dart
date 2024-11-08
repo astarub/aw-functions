@@ -50,8 +50,8 @@ class CalendarDatasource {
       final List<dynamic> pageData = await receivePort.first;
 
       events.addAll(pageData);
-    } catch (e) {
-      context.log('[-] Erro while spawning an isolate for the AStA events. Exception: $e');
+    } catch (e, stackTrace) {
+      context.log('[-] Erro while spawning an isolate for the AStA events. Exception: ${stackTrace}');
       throw ServerException();
     }
 
