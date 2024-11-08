@@ -64,7 +64,7 @@ class CalendarUsecases {
     context.log('[#] Spawning translation isolates...');
 
     for(int i = 0; i < slicedEvents.length; i++) {
-      await Isolate.spawn(translateIsolate, [receivePort.sendPort, slicedEvents[i], locale, i+1 == slicedEvents.length ? true : false, context]);
+      await Isolate.spawn(translateIsolate, [receivePort.sendPort, slicedEvents[i], locale, i+1 == slicedEvents.length ? true : false]);
     }
 
     context.log('[#] Listening for translated events...');
@@ -91,26 +91,23 @@ class CalendarUsecases {
 }
 
 Future<void> translateIsolate(List<dynamic> args) async {
-  Future<Event> translateEventEntity(Event entity, String languageCode, dynamic context) async {
+  Future<Event> translateEventEntity(Event entity, String languageCode) async {
     var translatedTitle = "";
     var translatedDescription = "";
 
     // Translate title
     if(entity.title.isNotEmpty) {
       try {
-        translatedTitle = await translateText(entity.title, 'auto', languageCode, context);
+        translatedTitle = await translateText(entity.title, 'auto', languageCode);
       } catch (e) {
-        context.error('[-] Error while translating news entity. Error: $e');
       }
     }
 
     // Translate description / content
     if(entity.description.isNotEmpty) {
       try {
-        translatedDescription = await translateText(entity.description, 'auto', languageCode, context);
-      } catch (e) {
-        context.error('[-] Error while translating description. Error: $e');
-      }
+        translatedDescription = await translateText(entity.description, 'auto', languageCode);
+      } catch (e) {}
     }
 
     return Event(
@@ -138,17 +135,14 @@ Future<void> translateIsolate(List<dynamic> args) async {
   final List<Event> events = args[1];
   final String languageCode = args[2];
   final bool last = args[3];
-  final dynamic context = args[4];
 
-  final List<Future<Event>> eventFutures = events.map((e) => translateEventEntity(e, languageCode, context)).toList();
+  final List<Future<Event>> eventFutures = events.map((e) => translateEventEntity(e, languageCode)).toList();
 
   List<Event> translatedEvents = [];
 
   try {
     translatedEvents = await Future.wait(eventFutures);
-  } catch(e) {
-    context.error("Error while translating: $e");
-  }
+  } catch(e) {}
 
   for(Event event in translatedEvents) {
     if(event.title.isEmpty) {

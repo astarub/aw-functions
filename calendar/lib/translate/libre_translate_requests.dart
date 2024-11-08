@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../failures/exceptions.dart';
 
-Future<String> translateText(String text, String sourceLang, String targetLang, dynamic context) async {
+Future<String> translateText(String text, String sourceLang, String targetLang) async {
   final response = await http.post(
     Uri.parse('https://translate.app.asta-bochum.de/translate'),
     headers: {
@@ -24,8 +24,6 @@ Future<String> translateText(String text, String sourceLang, String targetLang, 
 
     return jsonResponse['translatedText'];
   } else {
-    context.error('[-] Translation server error. Status Code ${response.statusCode}. Body: ${response.body}');
-
     throw ServerException();
   }
 
