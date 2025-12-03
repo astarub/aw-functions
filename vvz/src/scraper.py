@@ -173,12 +173,12 @@ def list_courses(eventlist_url: str, module_title: str | None = None):
 
         next_url = urljoin(current_url, next_href)
 
-        # WICHTIG: Endlosschleife verhindern (VVZ-BUG → page=7 wiederholt sich)
+      
         if next_url == current_url:
             print("[STOP] Pagination wiederholt sich Ende erreicht.")
             break
 
-        # → nächste Seite
+        # nächste Seite
         current_url = next_url
 
     return courses
@@ -255,7 +255,7 @@ def scrape_items(url, path=None):
         else:
             new_path = path + [text]
 
-        # Rekursion — Unterseite scrapen
+        # Rekursion , Unterseite scrapen
         sub_results = scrape_items(full_url, new_path)
         results.extend(sub_results)
 
@@ -414,10 +414,10 @@ all_courses = []
 for fac_name, fac_url in faculties:
     print(f"\n====== {fac_name} ======")
 
-    # 1️⃣ Fakultätskürzel extrahieren (z. B. "XIV.")
+    #  Fakultätskürzel extrahieren (z. B. "XIV.")
     fac_short = fac_name.split()[0]  # NICHT .replace(".") !!
 
-    # 2️⃣ Automatisch die richtige Collection-ID wählen
+    # Automatisch die richtige Collection-ID wählen
     if fac_short not in FACULTY_COLLECTIONS:
         print("[ERROR] Unbekannte Fakultät:", fac_short)
         continue
@@ -425,7 +425,7 @@ for fac_name, fac_url in faculties:
     COLLECTION_ID = FACULTY_COLLECTIONS[fac_short]
     print("[INFO] → Verwende Collection:", COLLECTION_ID)
 
-    # 3️⃣ Progress-Datei pro Fakultät
+    #  Progress-Datei pro Fakultät
     #PROGRESS_FILE = f"progress_{fac_short}.txt"
     PROGRESS_FILE = f"progress_{fac_short.replace('.', '')}.txt"
 
@@ -436,7 +436,7 @@ for fac_name, fac_url in faculties:
     else:
         done_courses = set()
 
-    # 4️⃣ Jetzt scrapen
+    #  Jetzt scrapen
     courses = scrape_items(fac_url, [fac_name])
     all_courses.extend(courses)
 
